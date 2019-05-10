@@ -92,7 +92,18 @@ function validate(spec, req) {
     }
 
     function list(cursor, obj, spec) {
-        // TODO
+        if (typeof obj === 'string') obj = obj.split(',');
+        
+        if (spec.minItems !== undefined && obj.length < spec.minItems) pushError(cursor, obj, `Value does not meet the minimum number of items ${spec.minItems}`);
+        if (spec.maxItems !== undefined && obj.length > spec.maxItems) pushError(cursor, obj, `Value exceeds the maximum number of items ${spec.maxItems}`);
+
+        const param = spec.items;
+        for (let i = 0; i < obj.length; i++) {
+            const value = obj[i];
+            const newCursor = `${cursor}[${i}]`;
+            param.name = 'items';
+            examine(newCursor, value, param);
+        }
     }
 
     function object(cursor, obj, spec) {

@@ -1,4 +1,4 @@
-const validator = require('./validator');
+const validator = require('../src/validator');
 const spec = {
     params: [{
             name: 'recordActivity',
@@ -6,6 +6,18 @@ const spec = {
             description: 'Updates the recent activity data',
             type: 'boolean',
             default: false
+          },
+          {
+              name: 'ids',
+              in: 'query',
+              description: 'List of ids to fetch',
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              minItems: 1,
+              maxItems: 100,
+              required: true
           },
         {
             name: 'body',
@@ -25,7 +37,8 @@ const spec = {
 
 const req = {
     query: {
-        recordActivity: true
+        recordActivity: true,
+        ids: ['a',2,'c']
     },
     body: {
         
