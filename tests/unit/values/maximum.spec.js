@@ -1,4 +1,4 @@
-const values = require('../../../src/valueValidator');
+const values = require('../../../src/valueValidator').validateValue;
 
 const setDefault = () => {};
 const testValue = 'maximum';

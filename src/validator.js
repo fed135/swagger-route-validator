@@ -1,5 +1,5 @@
 const set = require('lodash.set');
-const valueValidator = require('./valueValidator');
+const {valueValidator} = require('./valueValidator');
 
 function validate(spec, req) {
   const setDefault = (cursor, value) => {
