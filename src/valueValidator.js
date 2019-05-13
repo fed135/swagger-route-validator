@@ -35,7 +35,7 @@ function validateValue(cursor, value, spec, setDefault, errors) {
       setDefault(cursor, spec.default);
     }
   }
-
+  return errors;
 }
 
 

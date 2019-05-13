@@ -18,18 +18,19 @@ function type(cursor, value, expectation, spec, setDefault, errors) {
       boolean(cursor, value, errors);
       break;
     case 'array':
-      list(cursor, value, spec, errors);
+      list(cursor, value, spec, setDefault, errors);
       break;
     case 'list':
-      list(cursor, value, spec, errors);
+      list(cursor, value, spec, setDefault, errors);
       break;
     case 'object':
-      object(cursor, value, spec, errors);
+      object(cursor, value, spec, setDefault, errors);
       break;
     case 'schema':
       object(cursor, value, spec, setDefault, errors);
       break;
   }
+  return errors;
 }
 
 // data types
@@ -58,8 +59,17 @@ function boolean(cursor, value, errors) {
   }
 }
 
-function list(cursor, value, spec, errors) {
-  // TODO
+function list(cursor, value, spec, setDefault, errors) {
+  if (typeof value === 'string') value = value.split(',');
+        
+  if (spec.minItems !== undefined && value.length < spec.minItems) errors.push(cursor, value, `Value does not meet the minimum number of items ${spec.minItems}`);
+  if (spec.maxItems !== undefined && value.length > spec.maxItems) errors.push(cursor, value, `Value exceeds the maximum number of items ${spec.maxItems}`);
+  const param = spec.items;
+  for (let i = 0; i < value.length; i++) {
+    const newCursor = `${cursor}[${i}]`;
+    param.name = 'items';
+    valueValidator(newCursor, value[i], param, errors, setDefault);
+  }
 }
 
 function object(cursor, value, spec, setDefault, errors) {
