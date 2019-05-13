@@ -4,6 +4,7 @@ const makeError = require('./error');
 function validateValue(cursor, value, spec, setDefault, errors) {
   if (value !== undefined) {
 
+    if (spec.schema) Object.assign(spec, spec.schema);
     type(cursor, value, spec.type, spec, setDefault, errors);
 
     if (spec.format) {
@@ -71,13 +72,13 @@ function type(cursor, value, expectation, spec, setDefault, errors) {
       string(cursor, value, errors);
       break;
     case 'integer':
-      integer(cursor, value, errors);
+      integer(cursor, value, setDefault, errors);
       break;
     case 'number':
-      number(cursor, value, errors);
+      number(cursor, value, setDefault, errors);
       break;
     case 'boolean':
-      boolean(cursor, value, errors);
+      boolean(cursor, value, setDefault, errors);
       break;
     case 'array':
       list(cursor, value, spec, setDefault, errors);
@@ -103,21 +104,32 @@ function string(cursor, value, errors) {
   }
 }
 
-function number(cursor, value, errors) {
-  if (typeof value !== 'number') {
+function number(cursor, value, setDefault, errors) {
+  const parsedValue = Number(value);
+  if (typeof parsedValue !== 'number' || Number.isNaN(parsedValue)) {
     errors.push(makeError(cursor, value, 'Value is not a number'));
   }
-}
-
-function integer(cursor, value, errors) {
-  if (!Number.isInteger(value)) {
-    errors.push(makeError(cursor, value, 'Value is not an integer'));
+  else {
+    setDefault(cursor, parsedValue);
   }
 }
 
-function boolean(cursor, value, errors) {
+function integer(cursor, value, setDefault, errors) {
+  const parsedValue = Number(value);
+  if (!Number.isInteger(parsedValue)) {
+    errors.push(makeError(cursor, value, 'Value is not an integer'));
+  }
+  else {
+    setDefault(cursor, parsedValue);
+  }
+}
+
+function boolean(cursor, value, setDefault, errors) {
   if (value !== true && value !== false && value !== 'true' && value !== 'false') {
     errors.push(makeError(cursor, value, 'Value is not a boolean'));
+  }
+  else {
+    setDefault(cursor, value === 'true');
   }
 }
 

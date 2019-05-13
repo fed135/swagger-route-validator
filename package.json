@@ -12,6 +12,8 @@
     "lodash.set": "^4.3.2"
   },
   "devDependencies": {
-    "jest": "^24.8.0"
+    "express": "^4.16.4",
+    "jest": "^24.8.0",
+    "sway": "^2.0.6"
   }
 }

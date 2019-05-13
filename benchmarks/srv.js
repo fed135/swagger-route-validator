@@ -1,23 +1,38 @@
-# Swagger Route Validator
+const srv = require('../src/validator');
+const express = require('express');
 
-- An extremely fast and efficient module to validate and format incoming requests against a swagger specification.
-- 5 to 10x faster than `sway`, the fastest alternative
+const spec = {
+    '/pets/:id': {
+        get: {
+            parameters: [
+                {
+                  name: 'id',
+                  in: 'path',
+                  required: true,
+                  schema: {
+                    type: 'integer',
+                  },
+                },
+            ],
+            operationId: 'getPetById',
+            responses: {
+              200: { description: 'ok' },
+            },
+        },  
+    },
+    '/pets': {
+        get: {
+          operationId: 'getPets',
+          responses: {
+            200: { description: 'ok' },
+          },
+        },
+    },
+};
 
-## Some caveats
-
-- Limited Swagger specifications support
-- Requires a spec that is already compiled and has resolved json-refs
-- Requires that the route to validate be passed, not the entire spec
-
-## Usage
-
-```javascript
-
-// Code for a request validation middleware
-const validate = require('swagger-route-validator');
-const spec = require('./my-spec');
-
-function validateRequest(req, res) {
+const app = express();
+app.use(express.json());
+app.use((req, res, next) => {
     const route = app._router.stack.find(bloc => bloc.route && bloc.regexp.exec(req.originalUrl) !== null);
     
     // Check if route exists
@@ -53,18 +68,9 @@ function validateRequest(req, res) {
     if (errors.length > 0) return res.status(400).json(errors);
 
     next();
-}
+});
 
-module.exports = validateRequest;
-
-```
-
-## Running tests
-
-```
-npm run test
-```
-
-## License
-
-[Apache 2.0](./LICENSE) - Shutterstock, Frederic Charette
+app.get('/pets/:id', (req, res) => res.status(200).json({ result: 'ok' }));
+app.get('/pets', (req, res) => res.status(200).json({ result: 'ok' }));
+app.get('*', (req, res) => res.status(404).json({ err: 'not found' }));
+app.listen(9000);
