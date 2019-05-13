@@ -45,5 +45,5 @@ const req = {
     }
 };
 
-console.log(validator(spec, req))
+console.log(validator(spec, req));
 console.log(req);
