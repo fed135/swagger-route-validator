@@ -160,6 +160,12 @@ function object(cursor, value, spec, setDefault, errors) {
     }
   }
 
+  if (spec.additionalProperties === false) {
+    for (const prop in value) {
+      if (!(prop in spec.properties)) return errors.push(makeError(cursor, value, `Unexpected key ${prop} in object, additionalProperties not permitted`));
+    }
+  }
+
   for (const prop in spec.properties) {
     const param = spec.properties[prop];
     const newCursor = `${cursor}.${prop}`;

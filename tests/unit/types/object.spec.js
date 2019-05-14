@@ -34,6 +34,11 @@ test(`Can detect invalid ${testType} typing with required properties`, () => {
     expect(type('', { bar: 123 }, testType, spec, setDefault, []).length).toBe(1);
 });
 
+test(`Can detect invalid ${testType} typing with extra properties`, () => {
+    const spec = { properties: { foo: { type: 'integer' } }, additionalProperties: false };
+    expect(type('', { bar: 123, foo: 456 }, testType, spec, setDefault, []).length).toBe(1);
+});
+
 test(`Can detect invalid ${testType} typings`, () => {
     const spec = { properties: { foo: { type: 'integer' } } };
     expect(type('', -1, testType, spec, setDefault, []).length).toBe(1);
