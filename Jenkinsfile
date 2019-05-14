@@ -16,8 +16,7 @@ sstkNode([ qualityUtils: true ], 'build', [ batContainer ]) {
   checkout scm
   g.initialize()
   def branch = g.getBranch()
-  def prNumber = g.getPrNumber()
-  String gitTag = g.getTag()
+  // def prNumber = g.getPrNumber()
 
   container(batContainer.getName()) {
     stage('install') {
@@ -38,7 +37,7 @@ sstkNode([ qualityUtils: true ], 'build', [ batContainer ]) {
     //   }
     // }
 
-    if (gitTag) {
+    if (branch == 'master') {
       stage('publish npm package') {
         s.npmPublish(slackChannel)
       }
