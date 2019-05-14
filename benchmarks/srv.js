@@ -33,22 +33,25 @@ const spec = {
 const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
-    const route = app._router.stack.find(bloc => bloc.route && bloc.regexp.exec(req.originalUrl) !== null);
+    const layer = app._router.stack.find(bloc => bloc.route && bloc.regexp.exec(req.originalUrl) !== null);
     
     // Check if route exists
-    if (!route) return next();
+    if (!layer) return next();
 
-    function extractPathParams(url, route) {
+    // prevents routing from running twice:
+    req.route = layer.route;
+
+    function extractPathParams(url, layer) {
         const parameters = {};
 
-        if (route.keys.length > 0) {
+        if (layer.keys.length > 0) {
             const cleanedInbound = url.split('/');
-            const cleanedOriginal = route.route.path.split('/');
+            const cleanedOriginal = layer.route.path.split('/');
             let keysIndex = 0;
             for (let i = 0; i < cleanedInbound.length; i++) {
-                if (!route.keys[keysIndex]) continue;
+                if (!layer.keys[keysIndex]) continue;
                 if (cleanedInbound[i] !== cleanedOriginal[i]) {
-                    parameters[route.keys[keysIndex].name] = cleanedInbound[i];
+                    parameters[layer.keys[keysIndex].name] = cleanedInbound[i];
                     keysIndex++;
                 }
             }
@@ -56,12 +59,12 @@ app.use((req, res, next) => {
         return parameters;
     }
 
-    const matchingSpec = spec[route.route.path] && spec[route.route.path][req.method.toLowerCase()];
+    const matchingSpec = spec[layer.route.path] && spec[layer.route.path][req.method.toLowerCase()];
     
     // Path not in specs
     if (!matchingSpec) return next();
 
-    Object.assign(req.params, extractPathParams(req.originalUrl, route));
+    Object.assign(req.params, extractPathParams(req.originalUrl, layer));
 
     // Check validation errors
     const errors = srv(matchingSpec, req);
