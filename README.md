@@ -52,7 +52,7 @@ function validateRequest(req, res) {
     Object.assign(req.params, extractPathParams(req.originalUrl, layer));
 
     // Check validation errors
-    const errors = srv(matchingSpec, req);
+    const errors = validate(matchingSpec, req);
     if (errors.length > 0) return res.status(400).json(errors);
 
     next();
