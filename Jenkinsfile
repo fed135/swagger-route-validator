@@ -28,15 +28,15 @@ sstkNode([ qualityUtils: true ], 'build', [ batContainer ]) {
         sh('npm run test')
     }
 
-    if (prNumber) {
-      stage('update pr') {
-        q.validatePrWithSonarQube(prNumber)
-      }
-    } else if (branch == 'master') {
-      stage('sonar') {
-        q.updateSonarQube()
-      }
-    }
+    // if (prNumber) {
+    //   stage('update pr') {
+    //     q.validatePrWithSonarQube(prNumber)
+    //   }
+    // } else if (branch == 'master') {
+    //   stage('sonar') {
+    //     q.updateSonarQube()
+    //   }
+    // }
 
     if (gitTag) {
       stage('publish npm package') {
