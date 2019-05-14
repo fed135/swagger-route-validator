@@ -4,3 +4,9 @@ tests
 node_modules
 package-lock.json
 yarn.lock
+.idea
+.clinic
+benchmarks
+.eslintrc
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md

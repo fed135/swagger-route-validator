@@ -23,6 +23,11 @@ test(`Can detect valid ${testType} typing with minItems & maxItems`, () => {
     expect(type('', [1,2,3,4], testType, spec, setDefault, []).length).toBe(0);
 });
 
+test(`Can detect valid ${testType} typing with nested objects`, () => {
+    const spec = { items: { type: 'object', properties: { foo: { type: 'integer' } } } };
+    expect(type('', [{ foo: 123 }, { foo: 456 }], testType, spec, setDefault, []).length).toBe(0);
+});
+
 test(`Can detect invalid ${testType} typings`, () => {
     const spec = { items: { type: 'integer' } };
     expect(type('', true, testType, spec, setDefault, []).length).toBe(1);

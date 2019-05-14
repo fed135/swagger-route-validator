@@ -92,6 +92,8 @@ function type(cursor, value, expectation, spec, setDefault, errors) {
     case 'schema':
       object(cursor, value, spec, setDefault, errors);
       break;
+    default:
+      throw new Error(`Invalid swagger field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
   }
   return errors;
 }
@@ -149,6 +151,8 @@ function list(cursor, value, spec, setDefault, errors) {
 }
 
 function object(cursor, value, spec, setDefault, errors) {
+  if (typeof value !== 'object' || Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an object'));
+
   if (spec.required !== undefined && spec.required.length) {
     const missingKeys = spec.required.filter(key => !(key in value));
     if (missingKeys.length > 0) {
@@ -158,10 +162,9 @@ function object(cursor, value, spec, setDefault, errors) {
 
   for (const prop in spec.properties) {
     const param = spec.properties[prop];
-    const value = value[prop];
     const newCursor = `${cursor}.${prop}`;
     param.name = prop;
-    validateValue(newCursor, value, param, setDefault, errors);
+    validateValue(newCursor, value[prop], param, setDefault, errors);
   }
 }
 

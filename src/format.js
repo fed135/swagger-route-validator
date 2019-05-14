@@ -18,6 +18,8 @@ function format(cursor, value, expectation, errors) {
     case 'date-time':
       dateTime(cursor, value, errors);
       break;
+    default:
+      throw new Error(`Invalid swagger field format value ${expectation}`);
   }
   return errors;
 }

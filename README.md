@@ -1,7 +1,7 @@
 # Swagger Route Validator
 
 - An extremely fast and efficient module to validate and format incoming requests against a swagger specification.
-- 5 to 10x faster than `sway`, the fastest alternative
+- 5 to 10x more throughput, 10 to 12x more memory efficient and 10 to 20x less cpu usage than `sway`, the fastest alternative
 
 ## Some caveats
 
