@@ -4,7 +4,10 @@ const makeError = require('./error');
 function validateValue(cursor, value, spec, setDefault, errors) {
   if (value !== undefined) {
 
-    if (spec.schema) Object.assign(spec, spec.schema);
+    if (spec.schema) {
+      Object.assign(spec, spec.schema);
+      if (!spec.type) spec.type = 'object';
+    }
     type(cursor, value, spec.type, spec, setDefault, errors);
 
     if (spec.format) {
@@ -26,12 +29,12 @@ function validateValue(cursor, value, spec, setDefault, errors) {
     if (spec.maximum !== undefined) {
       maximum(cursor, value, spec.maximum, errors);
     }
-
   } else {
+
     if (spec.required === true) {
       errors.push(makeError(cursor, value, `Value for ${spec.name} is required and was not provided`));
-
-    } else if (spec.default !== undefined) {
+    }
+    if (spec.default !== undefined) {
       setDefault(cursor, spec.default);
     }
   }
@@ -69,7 +72,7 @@ function enumeration(cursor, value, expectation, errors) {
 function type(cursor, value, expectation, spec, setDefault, errors) {
   switch (expectation) {
     case 'string':
-      string(cursor, value, errors);
+      string(cursor, value, setDefault, errors);
       break;
     case 'integer':
       integer(cursor, value, setDefault, errors);
@@ -100,9 +103,12 @@ function type(cursor, value, expectation, spec, setDefault, errors) {
 
 // data types
 
-function string(cursor, value, errors) {
+function string(cursor, value, setDefault, errors) {
   if (typeof value !== 'string') {
     errors.push(makeError(cursor, value, 'Value is not a string'));
+  }
+  else {
+    setDefault(cursor, value);
   }
 }
 
@@ -136,7 +142,7 @@ function boolean(cursor, value, setDefault, errors) {
 }
 
 function list(cursor, value, spec, setDefault, errors) {
-  if (typeof value === 'string' && value.indexOf(',') > -1) value = value.split(',');
+  if (typeof value === 'string') value = value.split(',');
 
   if (!Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an array'));
         
