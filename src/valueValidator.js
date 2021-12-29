@@ -1,6 +1,14 @@
 const format = require('./format');
 const makeError = require('./error');
 
+function set(req) {
+  return (cursor, value) => {
+    const keys = cursor.split('.');
+    const last = keys.pop();
+    keys.reduce((o, k) => (o[k] || {}), req)[last] = value;
+  }
+};
+
 function validateValue(cursor, value, spec, setDefault, errors) {
   if (value !== undefined) {
 
@@ -71,32 +79,32 @@ function enumeration(cursor, value, expectation, errors) {
 
 function type(cursor, value, expectation, spec, setDefault, errors) {
   switch (expectation) {
-    case 'string':
-      string(cursor, value, setDefault, errors);
-      break;
-    case 'integer':
-      integer(cursor, value, setDefault, errors);
-      break;
-    case 'number':
-      number(cursor, value, setDefault, errors);
-      break;
-    case 'boolean':
-      boolean(cursor, value, setDefault, errors);
-      break;
-    case 'array':
-      list(cursor, value, spec, setDefault, errors);
-      break;
-    case 'list':
-      list(cursor, value, spec, setDefault, errors);
-      break;
-    case 'object':
-      object(cursor, value, spec, setDefault, errors);
-      break;
-    case 'schema':
-      object(cursor, value, spec, setDefault, errors);
-      break;
-    default:
-      throw new Error(`Invalid swagger field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
+  case 'string':
+    string(cursor, value, setDefault, errors);
+    break;
+  case 'integer':
+    integer(cursor, value, setDefault, errors);
+    break;
+  case 'number':
+    number(cursor, value, setDefault, errors);
+    break;
+  case 'boolean':
+    boolean(cursor, value, setDefault, errors);
+    break;
+  case 'array':
+    list(cursor, value, spec, setDefault, errors);
+    break;
+  case 'list':
+    list(cursor, value, spec, setDefault, errors);
+    break;
+  case 'object':
+    object(cursor, value, spec, setDefault, errors);
+    break;
+  case 'schema':
+    object(cursor, value, spec, setDefault, errors);
+    break;
+  default:
+    throw new Error(`Invalid swagger field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
   }
   return errors;
 }
@@ -182,4 +190,4 @@ function object(cursor, value, spec, setDefault, errors) {
 
 // Exports
 
-module.exports = { type, validateValue };
+module.exports = { type, validateValue, set };

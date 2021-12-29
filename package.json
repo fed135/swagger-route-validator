@@ -1,19 +1,29 @@
 {
   "name": "swagger-route-validator",
-  "version": "1.0.2",
-  "description": "",
+  "version": "1.1.0",
+  "description": "The faster swagger route validation middleware",
   "main": "src/validator.js",
+  "keywords": [
+    "swagger",
+    "validation"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "repository": {
+    "url": "https://github.com/fed135/swagger-route-validator"
+  },
   "scripts": {
-    "test": "jest ./tests"
+    "test": "jest ./tests",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "lodash.set": "^4.3.2"
-  },
+  "author": "Frederic Charette <fredericcharette@gmail.com>",
+  "license": "Apache 2.0",
   "devDependencies": {
-    "express": "^4.16.4",
-    "jest": "^24.8.0",
+    "eslint": "^8.5.0",
+    "express": "^4.17.0",
+    "jest": "^27.4.0",
     "sway": "^2.0.6"
   }
 }

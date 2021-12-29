@@ -1,15 +1,28 @@
 # Swagger Route Validator
 
 - An extremely fast and efficient module to validate and format incoming requests against a swagger specification.
-- 5 to 10x more throughput, 10 to 12x more memory efficient and 10 to 20x less cpu usage than `sway`, the fastest alternative
+  - 5x to 10x more throughput
+  - 10x to 12x more memory efficient
+  - 10x to 20x less cpu usage than [sway](https://www.npmjs.com/package/sway), the next fastest alternative
+- Zero dependencies :star:
+- Battle-tested by Fortune 500 companies
 
-## Some caveats
+## Roadmap
 
-- Limited Swagger specifications support
-- Requires a spec that is already compiled and has resolved json-refs
-- Requires that the route to validate be passed, not the entire spec
+- Add missing OpenAPI 3.0 features
+  - [Schema object references](https://swagger.io/specification/#schema-object)
+  - `$allOf`
+  - `$oneOf`
+  - `$anyOf`
+  - `$not`
+- Add support for these attributes
+  - `nullable`
+  - `additionalProperties`
+
 
 ## Usage
+
+This middleware example has the spec for that exact route passed as an argument
 
 ```javascript
 
@@ -17,7 +30,31 @@
 const validate = require('swagger-route-validator');
 const spec = require('./my-spec');
 
-function validateRequest(req, res) {
+function validationMiddleware(routeSpec) {
+    return function validateRequest(req, res, next) {
+
+        // Check validation errors
+        const errors = validate(routeSpec, req);
+        if (errors.length > 0) return res.status(400).json(errors);
+
+        next();
+    }
+}
+
+module.exports = validationMiddleware;
+
+```
+
+
+This middleware example takes in the entire swagger spec and tries to find the route in it.
+
+```javascript
+
+// Code for a request validation middleware
+const validate = require('swagger-route-validator');
+const spec = require('./my-spec');
+
+function validateRequest(req, res, next) {
     const layer = app._router.stack.find(bloc => bloc.route && bloc.regexp.exec(req.originalUrl) !== null);
     
     // Check if route exists
@@ -70,4 +107,4 @@ npm run test
 
 ## License
 
-[Apache 2.0](./LICENSE) - Shutterstock, Frederic Charette
+[Apache 2.0](./LICENSE) - Frederic Charette
