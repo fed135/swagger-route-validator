@@ -3,23 +3,23 @@ const makeError = require('./error');
 // -- Atoms
 function format(cursor, value, expectation, errors) {
   switch (expectation) {
-    case 'int64':
-      int64(cursor, value, errors);
-      break;
-    case 'int32':
-      int32(cursor, value, errors);
-      break;
-    case 'int16':
-      int16(cursor, value, errors);
-      break;
-    case 'int8':
-      int8(cursor, value, errors);
-      break;
-    case 'date-time':
-      dateTime(cursor, value, errors);
-      break;
-    default:
-      throw new Error(`Invalid swagger field format value ${expectation}`);
+  case 'int64':
+    int64(cursor, value, errors);
+    break;
+  case 'int32':
+    int32(cursor, value, errors);
+    break;
+  case 'int16':
+    int16(cursor, value, errors);
+    break;
+  case 'int8':
+    int8(cursor, value, errors);
+    break;
+  case 'date-time':
+    dateTime(cursor, value, errors);
+    break;
+  default:
+    throw new Error(`Invalid swagger field format value ${expectation}`);
   }
   return errors;
 }

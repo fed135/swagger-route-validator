@@ -1,11 +1,6 @@
-const set = require('lodash.set');
-const {validateValue} = require('./valueValidator');
+const {validateValue, set} = require('./valueValidator');
 
 function validate(spec, req) {
-  const setDefault = (cursor, value) => {
-    set(req, cursor, value);
-  };
-  
   const errors = [];
 
   if (spec.parameters) {
@@ -14,7 +9,7 @@ function validate(spec, req) {
       const value = param.in === 'body' ? req.body : (req[param.in] && req[param.in][param.name]) || (req.params && req.params[param.name]) || undefined;
       const cursor = param.in === 'body' ? 'body' : `${param.in}.${param.name}`;
 
-      validateValue(cursor, value, param, setDefault, errors);
+      validateValue(cursor, value, param, set(req), errors);
     }
   }
   return errors;
