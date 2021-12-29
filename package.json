@@ -8,7 +8,7 @@
     "validation"
   ],
   "engines": {
-    "node": ">=14"
+    "node": ">=10"
   },
   "repository": {
     "url": "https://github.com/fed135/swagger-route-validator"
