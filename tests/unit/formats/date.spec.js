@@ -4,7 +4,7 @@ const testFormat = 'date';
 
 test(`Can detect valid ${testFormat} formats`, () => {
   expect(format('', '2002-10-02', testFormat, []).length).toBe(0);
-  expect(format('', (new Date()).toLocaleDateString(), testFormat, []).length).toBe(0);
+  expect(format('', (new Date()).toLocaleDateString('fr-CA'), testFormat, []).length).toBe(0);
 });
 
 test(`Can detect invalid ${testFormat} formats`, () => {
