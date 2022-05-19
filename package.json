@@ -10,7 +10,7 @@
   ],
   "typings": "./types.d.ts",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "repository": {
     "url": "https://github.com/fed135/swagger-route-validator"
