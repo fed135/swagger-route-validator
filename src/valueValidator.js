@@ -1,45 +1,63 @@
 const format = require('./format');
 const makeError = require('./error');
 
+const propertyMap = {
+  format,
+  pattern,
+  enum: enumeration,
+  minimum,
+  maximum,
+  exclusiveMinimum,
+  exclusiveMaximum,
+  maxItems: () => {},
+  minItems: () => {},
+  maxProperties: () => {},
+  minProperties: () => {},
+  minLength,
+  maxLength,
+  multipleOf,
+  $not: isNot,
+  $allOf: isAllOf,
+  $anyOf: isAnyOf,
+  $oneOf: isOneOf,
+};
+
 function set(req) {
   return (cursor, value) => {
     const keys = cursor.split('.');
     const last = keys.pop();
     keys.reduce((o, k) => (o[k] || {}), req)[last] = value;
   }
-};
+}
 
-function validateValue(cursor, value, spec, setDefault, errors) {
-  if (value !== undefined) {
+function validateValue(cursor, value, spec, setDefault, errors, definitions = {}) {
+  if (value !== undefined && value !== null) {
 
     if (spec.schema) {
       Object.assign(spec, spec.schema);
       if (!spec.type) spec.type = 'object';
     }
+
+    if (spec.$ref) {
+      const refKey = spec.$ref.split('/').slice(-1)[0];
+      if (!(refKey in definitions)) {
+        return errors.push(makeError(cursor, value, `Could not find definition for ${spec.$ref}`));
+      }
+
+      spec = definitions[refKey];
+      cursor += `:${refKey}`;
+    }
+
     type(cursor, value, spec.type, spec, setDefault, errors);
 
-    if (spec.format) {
-      format(cursor, value, spec.format, errors);
-    }
-
-    if (spec.pattern !== undefined) {
-      pattern(cursor, value, spec.pattern, errors);
-    }
-
-    if (spec.enum !== undefined) {
-      enumeration(cursor, value, spec.enum, errors);
-    }
-
-    if (spec.minimum !== undefined) {
-      minimum(cursor, value, spec.minimum, errors);
-    }
-
-    if (spec.maximum !== undefined) {
-      maximum(cursor, value, spec.maximum, errors);
+    for(const prop in propertyMap) {
+      if (spec[prop] !== undefined) {
+        propertyMap[prop](cursor, value, spec[prop], errors);
+      }
     }
   } else {
 
-    if (spec.required === true) {
+    if (spec.required === true || (spec.required === undefined && spec.default === undefined && spec.nullable != true)) {
       errors.push(makeError(cursor, value, `Value for ${spec.name} is required and was not provided`));
     }
     if (spec.default !== undefined) {
@@ -71,10 +89,79 @@ function maximum(cursor, value, expectation, errors) {
   }
 }
 
+function exclusiveMinimum(cursor, value, expectation, errors) {
+  if (value <= expectation) {
+    errors.push(makeError(cursor, value, `Value is smaller or equal the minimum: ${expectation}`));
+  }
+}
+
+function exclusiveMaximum(cursor, value, expectation, errors) {
+  if (value >= expectation) {
+    errors.push(makeError(cursor, value, `Value is larger or equal the maximum: ${expectation}`));
+  }
+}
+
 function enumeration(cursor, value, expectation, errors) {
   if (!expectation.includes(value)) {
     errors.push(makeError(cursor, value, `Value is not one of: [${expectation.toString()}]`));
   }
+}
+
+function minLength(cursor, value, expectation, errors) {
+  if (value.length < expectation) {
+    errors.push(makeError(cursor, value, `Value has does not match minimum length: ${expectation}`));
+  }
+}
+
+function maxLength(cursor, value, expectation, errors) {
+  if (value.length > expectation) {
+    errors.push(makeError(cursor, value, `Value has does not match maximum length: ${expectation}`));
+  }
+}
+
+function multipleOf(cursor, value, expectation, errors) {
+  if (value % expectation !== 0) {
+    errors.push(makeError(cursor, value, `Value is not a multiple of: ${expectation}`));
+  }
+}
+
+function isNot(cursor, value, expectation, errors) {
+  const { items, numErrors } = runAssertions(value, expectation);
+
+  if (numErrors.length !== items.length) {
+    errors.push(makeError(cursor, value, `Value was found in $not statement ${expectation}`));
+  }
+}
+
+function isAnyOf(cursor, value, expectation, errors) {
+  const { items, numErrors } = runAssertions(value, expectation);
+
+  if (items.length - numErrors.length < 1) {
+    errors.push(makeError(cursor, value, `Value did not match $anyOf statement ${expectation}`));
+  }
+}
+
+function isAllOf(cursor, value, expectation, errors) {
+  const { numErrors } = runAssertions(value, expectation);
+
+  if (numErrors.length !== 0) {
+    errors.push(makeError(cursor, value, `Value did not match $allOf statement ${expectation}`));
+  }
+}
+
+function isOneOf(cursor, value, expectation, errors) {
+  const { items, numErrors } = runAssertions(value, expectation);
+
+  if (items.length - numErrors.length !== 1) {
+    errors.push(makeError(cursor, value, `Value did not match $oneOf statement ${expectation}`));
+  }
+}
+
+function runAssertions(value, expectation) {
+  const items = (Array.isArray(expectation) ? expectation : [expectation]);
+  const numErrors = items.map((item) => validateValue('', value, item, () => {}, []).length > 0).filter((item) => !!item); // Length = number of errors
+
+  return { items, numErrors };
 }
 
 function type(cursor, value, expectation, spec, setDefault, errors) {
@@ -102,6 +189,8 @@ function type(cursor, value, expectation, spec, setDefault, errors) {
     break;
   case 'schema':
     object(cursor, value, spec, setDefault, errors);
+    break;
+  case 'any':
     break;
   default:
     throw new Error(`Invalid swagger field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
@@ -156,7 +245,7 @@ function list(cursor, value, spec, setDefault, errors) {
         
   if (spec.minItems !== undefined && value.length < spec.minItems) return errors.push(makeError(cursor, value, `Value does not meet the minimum number of items ${spec.minItems}`));
   if (spec.maxItems !== undefined && value.length > spec.maxItems) return errors.push(makeError(cursor, value, `Value exceeds the maximum number of items ${spec.maxItems}`));
-  const param = spec.items;
+  const param = spec.items || { type: 'any' };
   for (let i = 0; i < value.length; i++) {
     const newCursor = `${cursor}[${i}]`;
     param.name = 'items';
@@ -166,6 +255,11 @@ function list(cursor, value, spec, setDefault, errors) {
 
 function object(cursor, value, spec, setDefault, errors) {
   if (typeof value !== 'object' || Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an object'));
+
+  let count = 0;
+  for (let key in value) if (value.hasOwnProperty(key)) ++count;
+  if (spec.maxProperties !== null && count > spec.maxProperties) return errors.push(makeError(cursor, value, `Value has more properties than maximum: ${spec.maxProperties}`));
+  if (spec.minProperties !== null && count < spec.minProperties) return errors.push(makeError(cursor, value, `Value has fewer properties than minimum: ${spec.minProperties}`));
 
   if (spec.required !== undefined && spec.required.length) {
     const missingKeys = spec.required.filter(key => !(key in value));

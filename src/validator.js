@@ -6,10 +6,12 @@ function validate(spec, req) {
   if (spec.parameters) {
     for (let i = 0; i < spec.parameters.length; i++) {
       const param = spec.parameters[i];
-      const value = param.in === 'body' ? req.body : (req[param.in] && req[param.in][param.name]) || (req.params && req.params[param.name]) || undefined;
-      const cursor = param.in === 'body' ? 'body' : `${param.in}.${param.name}`;
+      const paramLocation = param.in === 'header' ? 'headers' : param.in;
 
-      validateValue(cursor, value, param, set(req), errors);
+      const value = paramLocation === 'body' ? req.body : (req[paramLocation] && req[paramLocation][param.name]) || (req.params && req.params[param.name]) || undefined;
+      const cursor = paramLocation === 'body' ? 'body' : `${paramLocation}.${param.name}`;
+
+      validateValue(cursor, value, param, set(req), errors, spec.definitions);
     }
   }
   return errors;
