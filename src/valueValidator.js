@@ -257,7 +257,7 @@ function object(cursor, value, spec, setDefault, errors) {
   if (typeof value !== 'object' || Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an object'));
 
   let count = 0;
-  for (let key in value) if (value.hasOwnProperty(key)) ++count;
+  for (let key in value) ++count;
   if (spec.maxProperties !== null && count > spec.maxProperties) return errors.push(makeError(cursor, value, `Value has more properties than maximum: ${spec.maxProperties}`));
   if (spec.minProperties !== null && count < spec.minProperties) return errors.push(makeError(cursor, value, `Value has fewer properties than minimum: ${spec.minProperties}`));
 
