@@ -1,6 +1,6 @@
 {
   "name": "swagger-route-validator",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "The faster swagger route validation middleware",
   "main": "src/validator.js",
   "keywords": [
