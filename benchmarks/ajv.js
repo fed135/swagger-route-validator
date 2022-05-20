@@ -14,7 +14,7 @@ const spec = {
             type: 'integer',
           },
         },
-        required: ['id']
+        required: ['id'],
       },
     },  
   },
