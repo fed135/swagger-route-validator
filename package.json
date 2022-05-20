@@ -18,13 +18,17 @@
   "scripts": {
     "test": "jest ./tests",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "bench:ajv": "node benchmarks/ajv.js & sleep 3 && ab -c 100 -n 50000 http://localhost:9000/pets/123",
+    "bench:srv": "node benchmarks/srv.js & sleep 3 && ab -c 100 -n 50000 http://localhost:9000/pets/123",
+    "bench:sway": "node benchmarks/sway.js & sleep 3 && ab -c 100 -n 50000 http://localhost:9000/pets/123"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "eslint": "^8.15.0",
     "express": "^4.18.0",
+    "express-ajv-middleware": "^2.0.2",
     "jest": "^28.1.0",
     "sway": "^2.0.6"
   }

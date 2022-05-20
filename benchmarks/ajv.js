@@ -1,32 +1,25 @@
-const srv = require('../src/validator');
+const Ajv = require('ajv');
 const express = require('express');
+
+const validator = new Ajv();
 
 const spec = {
   '/pets/:id': {
     get: {
-      parameters: [
-        {
-          name: 'id',
-          in: 'path',
-          required: true,
-          schema: {
+      params: {
+        type: 'object',
+        properties: {
+          id: {
+            required: true,
             type: 'integer',
           },
         },
-      ],
-      operationId: 'getPetById',
-      responses: {
-        200: { description: 'ok' },
+        required: ['id']
       },
     },  
   },
   '/pets': {
-    get: {
-      operationId: 'getPets',
-      responses: {
-        200: { description: 'ok' },
-      },
-    },
+    get: {},
   },
 };
 
@@ -67,7 +60,7 @@ app.use((req, res, next) => {
   Object.assign(req.params, extractPathParams(req.originalUrl, layer));
 
   // Check validation errors
-  const errors = srv(matchingSpec, req);
+  const errors = validator.validate(matchingSpec, req);
   if (errors.length > 0) return res.status(400).json(errors);
 
   next();
