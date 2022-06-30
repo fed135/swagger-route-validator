@@ -9,7 +9,7 @@
 
 ---
 
-- Extremely fast and >10x more efficient than [sway](https://www.npmjs.com/package/sway), the next fastest alternative
+- Extremely fast and 50% more efficient than [AJV](https://www.npmjs.com/package/ajv), the next fastest alternative
 - Zero dependencies :star:
 - Battle-tested by Fortune 500 companies
 - Supports most OpenAPI 3.0 features like $ref, $not, $anyOf, $allOf, $oneOf, etc.
