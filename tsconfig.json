@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+      "allowJs": false,
+      "alwaysStrict": false,
+      "checkJs": false,
+      "esModuleInterop": true,
+      "module": "nodenext",
+      "resolveJsonModule": true,
+      "skipLibCheck": true,
+      "skipDefaultLibCheck": true,
+      "isolatedModules": true,
+      "target": "esnext",
+      "types": [
+        "jest",
+        "node"
+      ],
+      "outDir": "./bin",
+    },
+    "exclude": [
+      "node_modules",
+    ],
+    "include": [
+      "types.d.ts",
+      "src/**/*.ts",
+    ]
+  }
+    

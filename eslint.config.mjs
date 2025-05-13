@@ -1,8 +1,11 @@
 import eslint from '@eslint/js';
+import { globalIgnores } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 import jestConfig from 'eslint-plugin-jest';
 import spacing from '@stylistic/eslint-plugin';
 
-export default eslint.config(
+export default tseslint.config(
+  globalIgnores(['bin/*']),
   eslint.configs.recommended,
   jestConfig.configs['flat/recommended'],
   spacing.configs.recommended,

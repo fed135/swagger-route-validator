@@ -1,11 +1,11 @@
 declare module 'swagger-route-validator' {
 
-    export type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file';
+    type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file';
 
-    export interface Schema {
+    export interface Spec {
       parameters?: Parameter[]
       definitions?: {
-        [String]: SchemaFormatConstraints
+        [name: string]: SchemaFormatConstraints
       }
     }
 
@@ -117,17 +117,13 @@ export type Parameter = BodyParameter | FormDataParameter | QueryParameter | Pat
   }
 
   interface ExpressRequest {
-
-  }
-
-  interface ExpressResponse {
-
+    route?: {
+      url: string
+    }
   }
     
-
-    export default function validate(spec: Schema, req: Partial<ExpressRequest>): Errors[]
-    export function validateRequest(spec: Schema, req: Partial<ExpressRequest>): Errors[]
-    export function validateResponse(spec: Schema, res: Partial<ExpressResponse>, body: any): Errors[]
-    export function expressRequestValidation(spec: Schema): Errors[]
-    export function expressResponseValidation(spec: Schema): Errors[]
+  export function validateRequest(spec: Spec, req: Partial<ExpressRequest>): Errors[]
+  export function validateResponse(spec: Spec, body: any): Errors[]
+  export function expressRequestValidation(spec: Spec): Errors[]
+  export function expressResponseValidation(spec: Spec): Errors[]    
 }
