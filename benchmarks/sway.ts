@@ -56,5 +56,5 @@ swagger.create({ definition: {
       app.get(pathDef.regexp, handlers[pathDef.get.operationId]);
     });
 
-    app.listen(9000);
+    app.listen(9002);
   });
