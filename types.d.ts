@@ -1,9 +1,13 @@
 declare module 'swagger-route-validator' {
-    interface SwaggerSpec {
-        
-    }
 
     export type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file';
+
+    export interface Schema {
+      parameters?: Parameter[]
+      definitions?: {
+        [String]: SchemaFormatConstraints
+      }
+    }
 
 export type BaseParameter = {
   name: string;
@@ -107,7 +111,23 @@ export type Parameter = BodyParameter | FormDataParameter | QueryParameter | Pat
     required?: string[] | undefined;
   }
   
+  interface Errors {
+    error: string
+    cursor: string
+  }
+
+  interface ExpressRequest {
+
+  }
+
+  interface ExpressResponse {
+
+  }
     
 
-    export default function validate(spec: BaseSchema, req: Partial<NodeJS.IncomingMessage>)
+    export default function validate(spec: Schema, req: Partial<ExpressRequest>): Errors[]
+    export function validateRequest(spec: Schema, req: Partial<ExpressRequest>): Errors[]
+    export function validateResponse(spec: Schema, res: Partial<ExpressResponse>, body: any): Errors[]
+    export function expressRequestValidation(spec: Schema): Errors[]
+    export function expressResponseValidation(spec: Schema): Errors[]
 }

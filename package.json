@@ -1,12 +1,15 @@
 {
   "name": "swagger-route-validator",
-  "version": "2.0.1",
-  "description": "The faster swagger route validation middleware",
+  "version": "4.0.0",
+  "description": "The fastest openapi validation middleware",
   "main": "src/validator.js",
   "keywords": [
     "swagger",
     "validation",
-    "express"
+    "express",
+    "request",
+    "response",
+    "openapi"
   ],
   "typings": "./types.d.ts",
   "engines": {
@@ -15,21 +18,30 @@
   "repository": {
     "url": "https://github.com/fed135/swagger-route-validator"
   },
+  "husky": {
+      "hooks": {
+        "pre-push": "npm run lint"
+      }
+    },
   "scripts": {
     "test": "jest ./tests",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "bench:ajv": "node benchmarks/ajv.js & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench:srv": "node benchmarks/srv.js & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
-    "bench:sway": "node benchmarks/sway.js & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123"
+    "bench:sway": "node benchmarks/sway.js & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
+    "bench": "npm run bench:ajv && npm run bench:srv"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
   "license": "Apache-2.0",
   "devDependencies": {
-    "eslint": "^8.15.0",
-    "express": "^4.18.0",
+    "@stylistic/eslint-plugin": "^4.2.0",
+    "eslint": "^9.26.0",
+    "eslint-plugin-jest": "^28.11.0",
+    "express": "^5.1.0",
     "express-ajv-middleware": "^2.0.2",
-    "jest": "^28.1.0",
+    "husky": "^9.1.0",
+    "jest": "^29.7.0",
     "sway": "^2.0.6"
   }
 }

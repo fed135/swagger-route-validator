@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a title="Swagger Route Validator" href="http://kalm.js.org">
+  <a title="Swagger Route Validator" href="https://github.com/fed135/swagger-route-validator">
     <img alt="logo" width="300px" src="./srv.png" />
     <br/>
   </a>
@@ -9,37 +9,82 @@
 
 ---
 
-- Extremely fast and 50% more efficient than [AJV](https://www.npmjs.com/package/ajv), the next fastest alternative
+- The fastest request/response validator for OpenAPI applications
 - Zero dependencies :star:
 - Battle-tested by Fortune 500 companies
-- Supports most OpenAPI 3.0 features like $ref, $not, $anyOf, $allOf, $oneOf, etc.
+- Supports OpenAPI 3.X features like $ref, $not, $anyOf, $allOf, $oneOf, etc.
 - Supports most common data formats like emails, ips, uuids, dates, etc.
 
 ---
 
 ## Usage
 
-This is an example of an express middleware, which you could easily implement if you have your routes' swagger definitions.
+### Request validation
+
+SRV offers a built-in express middleware for easy integration:
 
 ```javascript
-import validate from 'swagger-route-validator';
+import {expressRequestValidation} from 'swagger-route-validator';
+import express from 'express';
 
-// Pass in the swagger spec for that route and return an express middleware
-export default (routeSpec) => function validateRequest(req, res, next) {
-    // Check validation errors
-    const errors = validate(routeSpec, req);
-    if (errors.length > 0) return res.status(400).json(errors);
+const app = express();
 
-    next();
-};
+app.get('/foo', expressRequestValidation(/* An object with your route's spec */), (req, res, next) => {
+  res.send('Hello World!');
+});
+
 ```
 
-If you don't know in advance what route definition to use on an inbound request, you can follow [this example](https://gist.github.com/fed135/7a45eab6510a78a5d514fae9a5cb6734)
+You may also run validations directly:
+
+```javascript
+import {validateRequest} from 'swagger-route-validator';
+
+
+const errors = validateRequest(/* An object with your route's spec */, req);
+if (errors.length > 0) throw new Error(`Request object does not match the specification for this route: ${errors.toString()}`);
+
+```
+
+Finally, if you want to put the validation middleware earlier in the stack (before routing) you could follow [this example](https://gist.github.com/fed135/7a45eab6510a78a5d514fae9a5cb6734). The middleware will try to match the request to a route from the spec. This could be used to retrospec an old API, but it is not recommenced for new services.
+
+
+### Response validation
+
+SRV also offers a middleware for response validation:
+
+```javascript
+import {expressResponseValidation} from 'swagger-route-validator';
+import express from 'express';
+
+const app = express();
+
+app.get('/foo', expressResponseValidation(/* An object with your route's spec */), (req, res, next) => {
+  res.send('Hello World!');
+});
+
+```
+
+As well as a direct validation function:
+
+```javascript
+import {validateResponse} from 'swagger-route-validator';
+
+const errors = validateResponse(routeSpec, response, );
+if (errors.length > 0) throw new Error(`Response object does not match the specification for this route: ${errors.toString()}`);
+
+```
 
 ## Running tests
 
 ```
 npm run test
+```
+
+## Running benchmarks
+
+```
+npm run bench
 ```
 
 ## License
