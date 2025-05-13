@@ -14,6 +14,8 @@
 - Battle-tested by Fortune 500 companies
 - Supports OpenAPI 3.X features like $ref, $not, $anyOf, $allOf, $oneOf, etc.
 - Supports most common data formats like emails, ips, uuids, dates, etc.
+- Supports Express 4.x and 5.x
+- Uses OpenAPI/ Swagger specs as Objects. Say goodbye to YAML files!
 
 ---
 
@@ -86,6 +88,18 @@ npm run test
 ```
 npm run bench
 ```
+
+## Migration from 2.X to 3.X
+
+SRV no longer has a default export, your import statement will need to change from:
+
+`import validate from 'swagger-route-validator';`
+
+To:
+
+`import {validateRequest} from 'swagger-route-validator';`
+
+SRV will now also throw errors when meeting a malformed spec Object.
 
 ## License
 
