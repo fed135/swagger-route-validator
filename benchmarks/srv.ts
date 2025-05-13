@@ -1,4 +1,4 @@
-import srv from '../src/validator';
+import {validateRequest as srv} from '../src';
 import express from 'express';
 
 const spec = {
@@ -31,5 +31,5 @@ function validateRequest(spec) {
 }
 
 app.get('/pets/:id', validateRequest(spec), (req, res) => res.status(200).json({ result: 'ok', id: req.params.id }));
-app.get('*', (req, res) => res.status(404).json({ err: 'not found' }));
+app.get('*path', (req, res) => res.status(404).json({ err: 'not found' }));
 app.listen(9000);

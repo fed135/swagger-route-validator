@@ -17,5 +17,5 @@ const app = express();
 app.use(express.json());
 
 app.get('/pets/:id', validateRoute(spec), (req, res) => res.status(200).json({ result: 'ok', id: req.params.id }));
-app.get('*', (req, res) => res.status(404).json({ err: 'not found' }));
+app.get('*path', (req, res) => res.status(404).json({ err: 'not found' }));
 app.listen(9000);

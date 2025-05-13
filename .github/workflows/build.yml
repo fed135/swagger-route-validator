@@ -24,25 +24,6 @@ jobs:
         npm install
         npm run lint
         npm run test
+        npm run bench
       env:
         CI: true
-  
-  benchmark:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        library: [ajv, srv, sway]
-    
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2
-    - name: npm install
-      run: npm install
-    - name: Benchmark ${{ matrix.library }}
-      run: npm run bench:${{ matrix.library }}
-      env:
-        CI: true
-
-    
-
