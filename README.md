@@ -44,7 +44,7 @@ import {validateRequest} from 'swagger-route-validator';
 
 
 const errors = validateRequest(/* An object with your route's spec */, req);
-if (errors.length > 0) throw new Error(`Request object does not match the specification for this route: ${errors.toString()}`);
+if (errors.length > 0) throw new Error(`Request object does not match the specification for this route: ${JSON.stringify(errors)}`);
 
 ```
 
@@ -73,7 +73,7 @@ As well as a direct validation function:
 import {validateResponse} from 'swagger-route-validator';
 
 const errors = validateResponse(routeSpec, response, );
-if (errors.length > 0) throw new Error(`Response object does not match the specification for this route: ${errors.toString()}`);
+if (errors.length > 0) throw new Error(`Response object does not match the specification for this route: ${JSON.stringify(errors)}`);
 
 ```
 

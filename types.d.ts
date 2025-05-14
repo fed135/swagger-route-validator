@@ -3,11 +3,26 @@ declare module 'swagger-route-validator' {
     type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file';
 
     export interface Spec {
-      parameters?: Parameter[]
+      responses?: {
+        default?: Schema | ResponseParameter;
+        [statusCode: number]: Schema | ResponseParameter;
+      }
+      parameters?: {
+        name: Parameter[];
+      }
       definitions?: {
-        [name: string]: SchemaFormatConstraints
+        [name: string]: SchemaFormatConstraints;
       }
     }
+
+    export type ResponseParameter = {
+      description?: string;
+      content?: {
+        [mediaType: MediaType]: { schema: Schema}
+      }
+    }
+
+    export type MediaType = 'application/json' | 'binary';
 
 export type BaseParameter = {
   name: string;
@@ -76,6 +91,7 @@ export type Parameter = BodyParameter | FormDataParameter | QueryParameter | Pat
     interface Reference {
         $ref: string;
       }
+
     // ------------------------------ Schema -------------------------------------
  type BaseSchema = {
     type?: ParameterType | undefined;

@@ -26,11 +26,14 @@ export function set(req) {
   return (cursor, value) => {
     const keys = cursor.split('.');
     const last = keys.pop();
+
+    if (keys[0] === 'path') return; // Fix for req.path in Express 5
+
     keys.reduce((o, k) => (o[k] || {}), req)[last] = value;
   };
 }
 
-export function validateValue(cursor, value, spec, setDefault, errors, definitions = {}) {
+export function validateValue(cursor, value, spec, setDefault, errors, definitions = {}, parameters = {}) {
   if (value !== undefined && value !== null) {
     if (spec.schema) {
       Object.assign(spec, spec.schema);
@@ -39,11 +42,13 @@ export function validateValue(cursor, value, spec, setDefault, errors, definitio
 
     if (spec.$ref) {
       const refKey = spec.$ref.split('/').slice(-1)[0];
-      if (!(refKey in definitions)) {
+      const refType = (spec.$ref.toLowerCase().indexOf('definitions') > -1) ? definitions : parameters;
+
+      if (!(refKey in refType)) {
         return errors.push(makeError(cursor, value, `Could not find definition for ${spec.$ref}`));
       }
 
-      spec = definitions[refKey];
+      spec = refType[refKey];
       cursor += `:${refKey}`;
     }
 
@@ -191,7 +196,7 @@ export function type(cursor, value, expectation, spec, setDefault, errors) {
     case 'any':
       break;
     default:
-      throw new Error(`Invalid swagger field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
+      throw new Error(`Invalid field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
   }
   return errors;
 }

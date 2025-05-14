@@ -20,7 +20,7 @@ const formatMap = {
 // -- Atoms
 export function format(cursor, value, expectation, errors) {
   if (!(expectation in formatMap)) {
-    throw new Error(`Invalid swagger field format value ${expectation}, pattern must be one of ${Object.keys(formatMap)}`);
+    throw new Error(`Invalid field format value ${expectation}, pattern must be one of ${Object.keys(formatMap)}`);
   }
 
   formatMap[expectation](cursor, value, errors, expectation);

@@ -219,7 +219,7 @@ describe('Given a valid spec with definitions', () => {
         id: '123',
       },
     };
-    expect(validator(spec, request)).toEqual([]);
+    expect(validator(spec, request, spec)).toEqual([]);
   });
 
   it('Should return return an errors for an existing but incorrect ref', () => {
@@ -229,7 +229,7 @@ describe('Given a valid spec with definitions', () => {
         operationId: '123',
       },
     };
-    expect(validator(spec, request)).toEqual([{
+    expect(validator(spec, request, spec)).toEqual([{
       cursor: 'body:User.id',
       error: 'Value for id is required and was not provided',
     }]);
