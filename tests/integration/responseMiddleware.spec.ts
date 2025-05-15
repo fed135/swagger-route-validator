@@ -137,7 +137,7 @@ describe('Express app', () => {
           });
       });
 
-      describe('with a response validation and response is invalid', () => {
+      describe('with a response validation and response is missing a parameter (header)', () => {
         beforeEach((done) => {
           server.get('/foo/:id', authenticationMiddleware, expressResponseValidation(spec.paths['/foo/{id}'].get, {behavior: 'error'}, spec), (req, res, next) => {
             res.status(200).json({ id: req.params.id, name: 'John Smith', age: 99 });
@@ -152,7 +152,7 @@ describe('Express app', () => {
           });
         });
     
-        test('should reply with a 200 when sending valid path parameters', async () => {
+        test('should reply with a 422 when sending valid path parameters', async () => {
           const {
             statusCode,
             body,

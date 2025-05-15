@@ -40,27 +40,15 @@ export function expressResponseValidation(routeSpec, options?: ResponseValidatio
             if (!res._validated) {
                 res._validated = true;
 
-                // Check status code
-                if (!routeSpec.responses[res.statusCode] && !routeSpec.responses['default']) {
-                    throw new Error(`Response status code "${res.statusCode}" not present in spec for this route and no default responses could be found.`);
-                }
-
-                const responseObj = routeSpec.responses[res.statusCode] || routeSpec.responses['default'];
                 let errors;
 
                 try {
-                    errors = validateResponse(responseObj.content ? responseObj.content['application/json'] : responseObj, JSON.parse(data), spec);
+                    errors = validateResponse(routeSpec, JSON.parse(data), res, spec);
                 }
                 catch(e) {
                     const errorObj = new expressError(`Response could not be parsed as JSON: ${JSON.stringify(e)}`, 422,  'Unprocessable Content');
                     errorObj.prototype = Error.prototype;
                     throw errorObj;
-                }
-
-                if (responseObj.headers) {
-                    for (let h in responseObj.headers) {
-                        validateValue(`header.${h}`, res.get(h), { name: h, ...responseObj.headers[h]}, () => {}, errors);
-                    }
                 }
 
                 if (errors.length > 0) {
