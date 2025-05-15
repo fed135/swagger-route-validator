@@ -24,6 +24,7 @@ describe('Given a valid spec with path parameters', () => {
       params: {
         id: '123',
       },
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([]);
   });
@@ -34,6 +35,7 @@ describe('Given a valid spec with path parameters', () => {
       params: {
         id: 'abc',
       },
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([{
       cursor: 'path.id',
@@ -75,6 +77,7 @@ describe('Given a valid spec with header parameters', () => {
         'authorization': '123',
         'x-request-id': '456',
       },
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([]);
   });
@@ -83,6 +86,7 @@ describe('Given a valid spec with header parameters', () => {
     const request = {
       url: '/',
       headers: {},
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([{
       cursor: 'headers.authorization',
@@ -119,6 +123,7 @@ describe('Given a valid spec with query parameters', () => {
       query: {
         userId: '123',
       },
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([]);
   });
@@ -127,6 +132,7 @@ describe('Given a valid spec with query parameters', () => {
     const request = {
       url: '/',
       headers: {},
+      method: 'get',
     };
     expect(validator(spec, request)).toEqual([{
       cursor: 'query.userId',
@@ -165,6 +171,7 @@ describe('Given a valid spec with body parameters', () => {
       body: {
         operationId: '123',
       },
+      method: 'post',
     };
     expect(validator(spec, request)).toEqual([]);
   });
@@ -175,6 +182,7 @@ describe('Given a valid spec with body parameters', () => {
       body: {
         foo: 'abc',
       },
+      method: 'post',
     };
     expect(validator(spec, request)).toEqual([{
       cursor: 'body.operationId',
@@ -218,6 +226,7 @@ describe('Given a valid spec with definitions', () => {
       body: {
         id: '123',
       },
+      method: 'post',
     };
     expect(validator(spec, request, spec)).toEqual([]);
   });
@@ -228,6 +237,7 @@ describe('Given a valid spec with definitions', () => {
       body: {
         operationId: '123',
       },
+      method: 'post',
     };
     expect(validator(spec, request, spec)).toEqual([{
       cursor: 'body:User.id',
@@ -254,16 +264,214 @@ describe('Given a valid spec with no definitions', () => {
     },
   };
 
-  it('Should return return errors for a invalid refs', () => {
+  it('Should return errors for a invalid refs', () => {
     const request = {
       url: '/',
       body: {
         operationId: '123',
       },
+      method: 'post',
     };
     expect(validator(spec, request)).toEqual([{
       cursor: 'body',
       error: 'Could not find definition for #/definitions/User',
+    }]);
+  });
+});
+
+describe('Given a valid path-level spec', () => {
+  const spec = {
+    paths: {
+      '/foo/{id}': {
+        parameters: [
+          {
+            name: 'authorization',
+            in: 'header',
+            required: true,
+            schema: {
+              type: 'string',
+            },
+          },
+        ],
+        get: {
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: {
+                type: 'integer',
+              },
+            },
+          ],
+          operationId: 'getPetById',
+          responses: {
+            200: { description: 'ok' },
+          },
+        }
+      }
+    }
+  };
+
+  it('Should return no errors for a valid request', () => {
+    const request = {
+      url: '/foo/123',
+      params: {
+        id: '123',
+      },
+      headers: {
+        'authorization': '123',
+      },
+      method: 'get',
+    };
+    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([]);
+  });
+
+  it('Should return errors for an invalid request from path level parameters', () => {
+    const request = {
+      url: '/foo/123',
+      params: {
+        id: '123',
+      },
+      headers: {},
+      method: 'get',
+    };
+    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+      cursor: 'headers.authorization',
+      error: 'Value for authorization is required and was not provided',
+    }]);
+  });
+
+  it('Should return path level errors first, for an invalid request from method level parameters', () => {
+    const request = {
+      url: '/foo/123',
+      params: {
+        id: 'abc',
+      },
+      headers: {},
+      method: 'get',
+    };
+    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+      cursor: 'headers.authorization',
+      error: 'Value for authorization is required and was not provided',
+    }]);
+  });
+
+  it('Should return errors for an invalid request from method level parameters', () => {
+    const request = {
+      url: '/foo/123',
+      params: {
+        id: 'abc',
+      },
+      headers: {
+        'authorization': '123',
+      },
+      method: 'get',
+    };
+    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+      cursor: 'path.id',
+      error: 'Value is not an integer',
+    }]);
+  });
+});
+
+describe('Given a valid requestBody spec', () => {
+  const spec = {
+    requestBody: {
+      content: {
+        schema: {
+          type: 'object',
+          properties: {
+            operationId: {
+              type: 'integer',
+              required: true,
+            },
+          },
+        },
+      },
+    },
+    operationId: 'getPetById',
+    responses: {
+      200: { description: 'ok' },
+    },
+  };
+
+  it('Should return no errors for a valid request', () => {
+    const request = {
+      url: '/',
+      body: {
+        operationId: '123',
+      },
+      method: 'post',
+    };
+    expect(validator(spec, request)).toEqual([]);
+  });
+
+  it('Should return errors for an invalid request', () => {
+    const request = {
+      url: '/',
+      body: {
+        operationId: 'abc',
+      },
+      method: 'post',
+    };
+    expect(validator(spec, request)).toEqual([{
+      cursor: 'body.operationId',
+      error: 'Value is not an integer',
+    }]);
+  });
+});
+
+
+describe('Given a valid webhook spec', () => {
+  const spec = {
+    webhooks: {
+      petUpdated: {
+        post: {
+          requestBody: {
+            content: {
+              schema: {
+                type: 'object',
+                properties: {
+                  operationId: {
+                    type: 'integer',
+                    required: true,
+                  },
+                },
+              },
+            },
+          },
+          operationId: 'getPetById',
+          responses: {
+            200: { description: 'ok' },
+          },
+        },
+      },
+    },
+  };
+
+  it('Should return no errors for a valid request', () => {
+    const request = {
+      url: '/',
+      body: {
+        operationId: '123',
+      },
+      method: 'post',
+    };
+    expect(validator(spec.webhooks.petUpdated, request)).toEqual([]);
+  });
+
+  it('Should return errors for an invalid request', () => {
+    const request = {
+      url: '/',
+      body: {
+        operationId: 'abc',
+      },
+      method: 'post',
+    };
+    expect(validator(spec.webhooks.petUpdated, request)).toEqual([{
+      cursor: 'body.operationId',
+      error: 'Value is not an integer',
     }]);
   });
 });

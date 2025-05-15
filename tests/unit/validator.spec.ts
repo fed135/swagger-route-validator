@@ -39,6 +39,7 @@ const request = {
   params: {
     id: '123',
   },
+  method: 'get'
 };
 
 test('valid spec', () => {
