@@ -16,7 +16,7 @@
     "node": ">=18"
   },
   "repository": {
-    "url": "https://github.com/fed135/swagger-route-validator"
+    "url": "git+https://github.com/fed135/swagger-route-validator.git"
   },
   "husky": {
       "hooks": {

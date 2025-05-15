@@ -12,3 +12,6 @@ CODE_OF_CONDUCT.md
 CONTRIBUTING.md
 srv.png
 .github
+src
+tsconfig.json
+eslint.config.mjs
