@@ -31,7 +31,7 @@ import express from 'express';
 
 const app = express();
 
-app.get('/foo', expressRequestValidation(/* An object with your route's spec */), (req, res, next) => {
+app.get('/foo', expressRequestValidation(/* An object of the route's spec */, /* The full spec */), (req, res, next) => {
   res.send('Hello World!');
 });
 
@@ -42,8 +42,7 @@ You may also run validations directly:
 ```javascript
 import {validateRequest} from 'swagger-route-validator';
 
-
-const errors = validateRequest(/* An object with your route's spec */, req);
+const errors = validateRequest(/* An object of the route's spec */, req, /* The full spec */);
 if (errors.length > 0) throw new Error(`Request object does not match the specification for this route: ${JSON.stringify(errors)}`);
 
 ```
@@ -61,7 +60,7 @@ import express from 'express';
 
 const app = express();
 
-app.get('/foo', expressResponseValidation(/* An object with your route's spec */), (req, res, next) => {
+app.get('/foo', expressResponseValidation(/* An object of the route's spec */, { behavior: 'error' }, /* The full spec */), (req, res, next) => {
   res.send('Hello World!');
 });
 
@@ -72,7 +71,7 @@ As well as a direct validation function:
 ```javascript
 import {validateResponse} from 'swagger-route-validator';
 
-const errors = validateResponse(routeSpec, response, );
+const errors = validateResponse(/* An object of the route's spec */, body, res, /* The full spec */);
 if (errors.length > 0) throw new Error(`Response object does not match the specification for this route: ${JSON.stringify(errors)}`);
 
 ```
@@ -99,7 +98,7 @@ To:
 
 `import {validateRequest} from 'swagger-route-validator';`
 
-SRV will now also throw errors when meeting a malformed spec Object.
+SRV will now also throw errors when meet with a malformed spec Object.
 
 ## License
 

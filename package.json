@@ -31,7 +31,7 @@
     "bench:srv": "ts-node --transpileOnly benchmarks/srv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench:sway": "ts-node --transpileOnly benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench:validator": "ts-node --transpileOnly benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
-    "bench": "npm run bench:ajv && npm run bench:srv",
+    "bench": "npm run bench:ajv && npm run bench:validator && npm run bench:srv",
     "build": "rm -rf ./bin && tsc"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
