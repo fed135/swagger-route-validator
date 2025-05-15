@@ -30,6 +30,7 @@
     "bench:ajv": "ts-node --transpileOnly benchmarks/ajv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench:srv": "ts-node --transpileOnly benchmarks/srv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench:sway": "ts-node --transpileOnly benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
+    "bench:validator": "ts-node --transpileOnly benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
     "bench": "npm run bench:ajv && npm run bench:srv",
     "build": "rm -rf ./bin && tsc"
   },
@@ -44,6 +45,7 @@
     "eslint-plugin-jest": "^28.11.0",
     "express": "^5.1.0",
     "express-ajv-middleware": "^2.0.2",
+    "express-openapi-validator": "^5.5.0",
     "husky": "^9.1.0",
     "jest": "^29.7.0",
     "sway": "^2.0.6",

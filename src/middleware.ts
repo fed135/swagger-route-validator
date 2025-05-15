@@ -5,11 +5,14 @@ import {validateValue} from './valueValidator';
 function expressError(message, statusCode, title) {
     this.message = message;
     this.statusCode = statusCode;
+    this.status = statusCode;
     this.title = title;
 }
 
 export function expressRequestValidation(routeSpec, spec?) {
     return function SRVRequestValidation(req, res, next) {
+        if (!req.route) throw new Error('Request validation was added to a non-route middleware.');
+
         const errors = validateRequest(routeSpec, req, spec);
         if (errors.length > 0) {
             const errorObj = new expressError(`Request object does not match the specification for this route: ${JSON.stringify(errors)}`, 400, 'Bad Request');
@@ -43,10 +46,17 @@ export function expressResponseValidation(routeSpec, options?: ResponseValidatio
                 }
 
                 const responseObj = routeSpec.responses[res.statusCode] || routeSpec.responses['default'];
+                let errors;
 
-                // TODO: Handle errors, reccursions and non-json data
+                try {
+                    errors = validateResponse(responseObj.content ? responseObj.content['application/json'] : responseObj, JSON.parse(data), spec);
+                }
+                catch(e) {
+                    const errorObj = new expressError(`Response could not be parsed as JSON: ${JSON.stringify(e)}`, 422,  'Unprocessable Content');
+                    errorObj.prototype = Error.prototype;
+                    throw errorObj;
+                }
 
-                const errors = validateResponse(responseObj.content ? responseObj.content['application/json'] : responseObj, JSON.parse(data), spec);
                 if (responseObj.headers) {
                     for (let h in responseObj.headers) {
                         validateValue(`header.${h}`, res.get(h), { name: h, ...responseObj.headers[h]}, () => {}, errors);
