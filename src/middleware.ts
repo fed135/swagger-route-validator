@@ -1,6 +1,5 @@
 import {validateRequest} from './request';
 import {validateResponse} from './response';
-import {validateValue} from './valueValidator';
 
 function expressError(message, statusCode, title) {
     this.message = message;

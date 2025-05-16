@@ -9,13 +9,18 @@ interface Spec {
   info: {
     title: string;
     version: string;
-    description: string;
-    [customField: string]: string
+    description?: string;
+    contact?: MetaURLField
+    license?: MetaURLField
+    [customField: string]: any
   }
+  termsOfService?: string
   consumes?: MediaType[]
   produces?: MediaType[]
-  servers?: string[]
+  servers?: MetaURLField[]
   securityDefinitions?: any
+  externalDocs: MediaType
+  tags: MetaURLField[]
   parameters?: {
     [parameterName: string]: Parameter;
   }
@@ -28,6 +33,12 @@ interface Spec {
   webhooks: {
     [webhookName: string]: PathDefinition
   }
+}
+
+interface MetaURLField {
+  name?: string;
+  url: string;
+  [customField: string]: string
 }
 
 interface PathDefinition {
@@ -49,6 +60,8 @@ interface RouteDefinition {
   }
   operationId?: string
   parameters?: Parameter[]
+  security?: any
+  tags?: string[]
 }
 
 interface ResponseParameter {
@@ -188,8 +201,8 @@ interface ExpressResponse {
 declare module 'swagger-route-validator' {
   export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec): Errors[]
   export function validateResponse(routeSpec: PathDefinition | RouteDefinition, body: any, res: Partial<ExpressResponse>, spec?: Spec): Errors[]
-  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): Errors[]
-  export function expressResponseValidation(routeSpec: PathDefinition | RouteDefinition, options?: ResponseValidationOptions, spec?: Spec): Errors[]
+  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: Function) => any
+  export function expressResponseValidation(routeSpec: PathDefinition | RouteDefinition, options?: ResponseValidationOptions, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: Function) => any
   export interface OpenApiSpecification extends Spec {
     openapi: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1'; 
   }

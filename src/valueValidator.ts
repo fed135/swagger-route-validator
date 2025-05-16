@@ -33,7 +33,14 @@ export function set(req) {
   };
 }
 
-export function validateValue(cursor, value, spec, setDefault, errors, definitions = {}, parameters = {}) {
+export function scanRef(path: string, spec: any) {
+  // Check if the path is for an external reference
+  const target = (path[0] !== '#') ? require(path.substring(0, path.indexOf('#') || path.length)) : spec;
+  const pathTokens = path.substring(path.indexOf('#') + 1).split('/');
+  return pathTokens.reduce((cursor, token) => token !== '' ? cursor?.[token] || null : cursor, target);
+}
+
+export function validateValue(cursor, value, spec, setDefault, errors, fullSpec = {}) {
   if (value !== undefined && value !== null) {
     if (spec.schema) {
       Object.assign(spec, spec.schema);
@@ -41,14 +48,14 @@ export function validateValue(cursor, value, spec, setDefault, errors, definitio
     }
 
     if (spec.$ref) {
-      const refKey = spec.$ref.split('/').slice(-1)[0];
-      const refType = (spec.$ref.toLowerCase().indexOf('definitions') > -1) ? definitions : parameters;
+      const refName = spec.$ref;
+      const refKey = refName.split('/').slice(-1)[0];
+      spec = scanRef(refName, fullSpec);
 
-      if (!(refKey in refType)) {
-        return errors.push(makeError(cursor, value, `Could not find definition for ${spec.$ref}`));
+      if (!spec) {
+        return errors.push(makeError(cursor, value, `Could not find definition for ${refName}`));
       }
 
-      spec = refType[refKey];
       cursor += `:${refKey}`;
     }
 
