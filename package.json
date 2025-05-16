@@ -1,6 +1,6 @@
 {
   "name": "swagger-route-validator",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The fastest openapi validation middleware",
   "main": "bin/index.js",
   "keywords": [
