@@ -189,5 +189,11 @@ declare module 'swagger-route-validator' {
   export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec): Errors[]
   export function validateResponse(routeSpec: PathDefinition | RouteDefinition, body: any, res: Partial<ExpressResponse>, spec?: Spec): Errors[]
   export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): Errors[]
-  export function expressResponseValidation(routeSpec: PathDefinition | RouteDefinition, options?: ResponseValidationOptions, spec?: Spec): Errors[]    
+  export function expressResponseValidation(routeSpec: PathDefinition | RouteDefinition, options?: ResponseValidationOptions, spec?: Spec): Errors[]
+  export interface OpenApiSpecification extends Spec {
+    openapi: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1'; 
+  }
+  export interface SwaggerSpecification extends Spec {
+    swagger: '1.0' | '1.1' | '1.2' | '2.0'; 
+  }
 }
