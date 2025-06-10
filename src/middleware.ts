@@ -15,7 +15,7 @@ export function expressRequestValidation(routeSpec, spec?) {
         const errors = validateRequest(routeSpec, req, spec);
         if (errors.length > 0) {
             const errorObj = new expressError(`Request object does not match the specification for this route: ${JSON.stringify(errors)}`, 400, 'Bad Request');
-            errorObj.prototype = Error.prototype;
+            Object.setPrototypeOf(errorObj, Error.prototype);
             throw errorObj;
         }
         next();
@@ -46,7 +46,7 @@ export function expressResponseValidation(routeSpec, options?: ResponseValidatio
                 }
                 catch(e) {
                     const errorObj = new expressError(`Response could not be parsed as JSON: ${JSON.stringify(e)}`, 422,  'Unprocessable Content');
-                    errorObj.prototype = Error.prototype;
+                    Object.setPrototypeOf(errorObj, Error.prototype);
                     throw errorObj;
                 }
 
@@ -55,7 +55,7 @@ export function expressResponseValidation(routeSpec, options?: ResponseValidatio
                     if (options.behavior === 'warn') console.log(errorMessage);
                     else {
                         const errorObj = new expressError(errorMessage, 422, 'Unprocessable Content');
-                        errorObj.prototype = Error.prototype;
+                        Object.setPrototypeOf(errorObj, Error.prototype);
                         throw errorObj;
                     }
                 }
