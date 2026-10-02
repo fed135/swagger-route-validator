@@ -1,4 +1,5 @@
-import { validateValue as values } from '../../../src/valueValidator';
+import { test } from 'node:test';
+import { validateValue as values } from '../../../src/valueValidator.ts';
 
 const setDefault = () => {};
 const testValue = 'maxLength';

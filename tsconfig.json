@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
       "allowJs": false,
+      "allowImportingTsExtensions": true,
       "alwaysStrict": false,
       "checkJs": false,
       "esModuleInterop": true,
@@ -11,7 +12,6 @@
       "isolatedModules": true,
       "target": "esnext",
       "types": [
-        "jest",
         "node"
       ],
       "outDir": "./bin",

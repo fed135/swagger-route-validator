@@ -1,5 +1,5 @@
-import {format} from './format';
-import {makeError} from './error';
+import {format} from './format.ts';
+import {makeError} from './error.ts';
 
 const propertyMap = {
   format,

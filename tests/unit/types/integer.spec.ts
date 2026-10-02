@@ -1,4 +1,5 @@
-import { type } from '../../../src/valueValidator';
+import { test } from 'node:test';
+import { type } from '../../../src/valueValidator.ts';
 
 const testType = 'integer';
 const setDefault = () => {};

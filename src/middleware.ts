@@ -1,11 +1,19 @@
-import {validateRequest} from './request';
-import {validateResponse} from './response';
+import {validateRequest} from './request.ts';
+import {validateResponse} from './response.ts';
 
-function expressError(message, statusCode, title) {
-    this.message = message;
-    this.statusCode = statusCode;
-    this.status = statusCode;
-    this.title = title;
+class expressError {
+    message = ''
+    statusCode = 0
+    status = 0
+    title = ''
+
+    constructor(message, statusCode, title) {
+        this.message = message;
+        this.statusCode = statusCode;
+        this.status = statusCode;
+        this.title = title;
+    }
+
 }
 
 export function expressRequestValidation(routeSpec, spec?) {

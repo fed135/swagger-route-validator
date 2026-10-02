@@ -1,4 +1,5 @@
-import {format} from '../../../src/format';
+import { test } from 'node:test';
+import {format} from '../../../src/format.ts';
 
 const testFormat = 'email';
 

@@ -1,4 +1,5 @@
-import {validateRequest as validator} from '../../src/request';
+import { test } from 'node:test';
+import {validateRequest as validator} from '../../src/request.ts';
 
 const spec = {
   parameters: [

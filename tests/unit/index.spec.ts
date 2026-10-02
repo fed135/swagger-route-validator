@@ -1,4 +1,5 @@
-import {validateRequest as validator} from '../../src/request';
+import { describe, test } from 'node:test';
+import {validateRequest as validator} from '../../src/request.ts';
 
 describe('Given a valid spec with path parameters', () => {
   const spec = {
@@ -18,7 +19,7 @@ describe('Given a valid spec with path parameters', () => {
     },
   };
 
-  it('Should return return no errors for a valid data type', () => {
+  test('Should return return no errors for a valid data type', () => {
     const request = {
       url: '/',
       params: {
@@ -29,7 +30,7 @@ describe('Given a valid spec with path parameters', () => {
     expect(validator(spec, request)).toEqual([]);
   });
 
-  it('Should return return errors for an invalid data type', () => {
+  test('Should return return errors for an invalid data type', () => {
     const request = {
       url: '/',
       params: {
@@ -70,7 +71,7 @@ describe('Given a valid spec with header parameters', () => {
     },
   };
 
-  it('Should return return no errors for a valid data type', () => {
+  test('Should return return no errors for a valid data type', () => {
     const request = {
       url: '/',
       headers: {
@@ -82,7 +83,7 @@ describe('Given a valid spec with header parameters', () => {
     expect(validator(spec, request)).toEqual([]);
   });
 
-  it('Should return return errors for missin fields', () => {
+  test('Should return return errors for missin fields', () => {
     const request = {
       url: '/',
       headers: {},
@@ -117,7 +118,7 @@ describe('Given a valid spec with query parameters', () => {
     },
   };
 
-  it('Should return return no errors for a valid data type', () => {
+  test('Should return return no errors for a valid data type', () => {
     const request = {
       url: '/',
       query: {
@@ -128,7 +129,7 @@ describe('Given a valid spec with query parameters', () => {
     expect(validator(spec, request)).toEqual([]);
   });
 
-  it('Should return return errors for missin fields', () => {
+  test('Should return return errors for missin fields', () => {
     const request = {
       url: '/',
       headers: {},
@@ -165,7 +166,7 @@ describe('Given a valid spec with body parameters', () => {
     },
   };
 
-  it('Should return return no errors for a valid data type', () => {
+  test('Should return return no errors for a valid data type', () => {
     const request = {
       url: '/',
       body: {
@@ -176,7 +177,7 @@ describe('Given a valid spec with body parameters', () => {
     expect(validator(spec, request)).toEqual([]);
   });
 
-  it('Should return return errors for missin fields', () => {
+  test('Should return return errors for missin fields', () => {
     const request = {
       url: '/',
       body: {
@@ -220,7 +221,7 @@ describe('Given a valid spec with definitions', () => {
     },
   };
 
-  it('Should return return no errors for a valid ref', () => {
+  test('Should return return no errors for a valid ref', () => {
     const request = {
       url: '/',
       body: {
@@ -231,7 +232,7 @@ describe('Given a valid spec with definitions', () => {
     expect(validator(spec, request, spec)).toEqual([]);
   });
 
-  it('Should return return an errors for an existing but incorrect ref', () => {
+  test('Should return return an errors for an existing but incorrect ref', () => {
     const request = {
       url: '/',
       body: {
@@ -264,7 +265,7 @@ describe('Given a valid spec with no definitions', () => {
     },
   };
 
-  it('Should return errors for a invalid refs', () => {
+  test('Should return errors for a invalid refs', () => {
     const request = {
       url: '/',
       body: {
@@ -313,7 +314,7 @@ describe('Given a valid path-level spec', () => {
     }
   };
 
-  it('Should return no errors for a valid request', () => {
+  test('Should return no errors for a valid request', () => {
     const request = {
       url: '/foo/123',
       params: {
@@ -327,7 +328,7 @@ describe('Given a valid path-level spec', () => {
     expect(validator(spec.paths['/foo/{id}'], request)).toEqual([]);
   });
 
-  it('Should return errors for an invalid request from path level parameters', () => {
+  test('Should return errors for an invalid request from path level parameters', () => {
     const request = {
       url: '/foo/123',
       params: {
@@ -342,7 +343,7 @@ describe('Given a valid path-level spec', () => {
     }]);
   });
 
-  it('Should return path level errors first, for an invalid request from method level parameters', () => {
+  test('Should return path level errors first, for an invalid request from method level parameters', () => {
     const request = {
       url: '/foo/123',
       params: {
@@ -357,7 +358,7 @@ describe('Given a valid path-level spec', () => {
     }]);
   });
 
-  it('Should return errors for an invalid request from method level parameters', () => {
+  test('Should return errors for an invalid request from method level parameters', () => {
     const request = {
       url: '/foo/123',
       params: {
@@ -396,7 +397,7 @@ describe('Given a valid requestBody spec', () => {
     },
   };
 
-  it('Should return no errors for a valid request', () => {
+  test('Should return no errors for a valid request', () => {
     const request = {
       url: '/',
       body: {
@@ -407,7 +408,7 @@ describe('Given a valid requestBody spec', () => {
     expect(validator(spec, request)).toEqual([]);
   });
 
-  it('Should return errors for an invalid request', () => {
+  test('Should return errors for an invalid request', () => {
     const request = {
       url: '/',
       body: {
@@ -450,7 +451,7 @@ describe('Given a valid webhook spec', () => {
     },
   };
 
-  it('Should return no errors for a valid request', () => {
+  test('Should return no errors for a valid request', () => {
     const request = {
       url: '/',
       body: {
@@ -461,7 +462,7 @@ describe('Given a valid webhook spec', () => {
     expect(validator(spec.webhooks.petUpdated, request)).toEqual([]);
   });
 
-  it('Should return errors for an invalid request', () => {
+  test('Should return errors for an invalid request', () => {
     const request = {
       url: '/',
       body: {

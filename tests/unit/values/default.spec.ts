@@ -1,4 +1,5 @@
-import { validateValue, set } from '../../../src/valueValidator';
+import { test } from 'node:test';
+import { validateValue, set } from '../../../src/valueValidator.ts';
 
 const testValue = 'default';
 

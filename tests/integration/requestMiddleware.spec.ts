@@ -1,6 +1,8 @@
+import { describe, test, beforeEach, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import { once } from 'node:events';
 import express from 'express';
-import { expressRequestValidation } from '../../src';
-import { request } from 'undici';
+import { expressRequestValidation } from '../../src/index.ts';
 
 describe('Express app', () => {
     let server;
@@ -67,10 +69,9 @@ describe('Express app', () => {
     });
   
     describe('with a request validation', () => {
-      beforeEach((done) => {
+      beforeEach(async () => {
         server.get('/foo/:id', authenticationMiddleware, expressRequestValidation(spec.paths['/foo/{id}'].get, spec), (req, res, next) => {
-          res.status(200).json({ id: req.params.id, name: 'John Smith', age: 99 });
-          return next();
+          return res.status(200).json({ id: req.params.id, name: 'John Smith', age: 99 });
         });
 
         server.use((req, res, next) => {
@@ -81,36 +82,30 @@ describe('Express app', () => {
 
         server.use(jsonErrorHandler);
   
-        app = server.listen(port, (err) => {
-          if (err) throw err;
-          done();
-        });
+        app = server.listen(port);
+        await once(app, 'listening');
       });
   
       test('should reply with a 200 when sending valid path parameters', async () => {
-        const {
-          statusCode,
-          body,
-        } = await request(`http://localhost:${port}/foo/123`, { headers: {
+        const res = await fetch(`http://localhost:${port}/foo/123`, { headers: {
             authorization: 'valid',
         }});
-        const response = await body.json();
+        const { status } = res;
+        const response = await res.json();
   
-        expect(statusCode).toEqual(200);
-        expect(response).toEqual({ id: '123', name: 'John Smith', age: 99 });
+        assert.strictEqual(status, 200);
+        assert.deepStrictEqual(response, { id: '123', name: 'John Smith', age: 99 });
       });
 
       test('should reply with a 400 when sending invalid path parameters', async () => {
-        const {
-          statusCode,
-          body,
-        } = await request(`http://localhost:${port}/foo/abc`, { headers: {
+        const res = await fetch(`http://localhost:${port}/foo/abc`, { headers: {
             authorization: 'valid',
         }});
-        const response = await body.json();
+        const { status } = res;
+        const response = await res.json();
   
-        expect(statusCode).toEqual(400);
-        expect(response).toEqual({ error: 'Request object does not match the specification for this route: [{\"error\":\"Value is not an integer\",\"cursor\":\"path.id\"}]' });
+        assert.strictEqual(status, 400);
+        assert.deepStrictEqual(response, { error: 'Request object does not match the specification for this route: [{\"error\":\"Value is not an integer\",\"cursor\":\"path.id\"}]' });
       });
     });
 });

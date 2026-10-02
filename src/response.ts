@@ -1,4 +1,4 @@
-import { validateValue, set } from './valueValidator';
+import { validateValue, set } from './valueValidator.ts';
 
 export function validateResponse(routeSpec, response, res, spec:any = {}) {
     const errors = [];

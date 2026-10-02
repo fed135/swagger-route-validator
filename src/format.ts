@@ -1,5 +1,5 @@
-import {makeError} from './error';
-import { URL } from 'url';
+import {makeError} from './error.ts';
+import { URL } from 'node:url';
 
 const formatMap = {
   int8,
