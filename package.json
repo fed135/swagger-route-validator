@@ -3,6 +3,7 @@
   "version": "4.0.0",
   "description": "The fastest openapi validation middleware",
   "main": "bin/index.js",
+  "type": "module",
   "keywords": [
     "swagger",
     "validation",

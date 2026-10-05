@@ -47,26 +47,11 @@ if (errors.length > 0) throw new Error(`Request object does not match the specif
 
 ```
 
-Finally, if you want to put the validation middleware earlier in the stack (before routing) you could follow [this example](https://gist.github.com/fed135/7a45eab6510a78a5d514fae9a5cb6734). The middleware will try to match the request to a route from the spec. This could be used to retrospec an old API, but it is not recommenced for new services.
 
 
 ### Response validation
 
-SRV also offers a middleware for response validation:
-
-```javascript
-import {expressResponseValidation} from 'swagger-route-validator';
-import express from 'express';
-
-const app = express();
-
-app.get('/foo', expressResponseValidation(/* An object of the route's spec */, { behavior: 'error' }, /* The full spec */), (req, res, next) => {
-  res.send('Hello World!');
-});
-
-```
-
-As well as a direct validation function:
+SRV also offers a method to validate response objects:
 
 ```javascript
 import {validateResponse} from 'swagger-route-validator';

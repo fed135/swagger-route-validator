@@ -1,4 +1,5 @@
 import { describe, test } from 'node:test';
+import assert from 'node:assert/strict';
 import {validateRequest as validator} from '../../src/request.ts';
 
 describe('Given a valid spec with path parameters', () => {
@@ -27,7 +28,7 @@ describe('Given a valid spec with path parameters', () => {
       },
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request), []);
   });
 
   test('Should return return errors for an invalid data type', () => {
@@ -38,7 +39,7 @@ describe('Given a valid spec with path parameters', () => {
       },
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'path.id',
       error: 'Value is not an integer',
     }]);
@@ -80,7 +81,7 @@ describe('Given a valid spec with header parameters', () => {
       },
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request), []);
   });
 
   test('Should return return errors for missin fields', () => {
@@ -89,7 +90,7 @@ describe('Given a valid spec with header parameters', () => {
       headers: {},
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'headers.authorization',
       error: 'Value for authorization is required and was not provided',
     },
@@ -126,7 +127,7 @@ describe('Given a valid spec with query parameters', () => {
       },
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request), []);
   });
 
   test('Should return return errors for missin fields', () => {
@@ -135,7 +136,7 @@ describe('Given a valid spec with query parameters', () => {
       headers: {},
       method: 'get',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'query.userId',
       error: 'Value for userId is required and was not provided',
     }]);
@@ -174,7 +175,7 @@ describe('Given a valid spec with body parameters', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request), []);
   });
 
   test('Should return return errors for missin fields', () => {
@@ -185,7 +186,7 @@ describe('Given a valid spec with body parameters', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'body.operationId',
       error: 'Value for operationId is required and was not provided',
     }]);
@@ -229,7 +230,7 @@ describe('Given a valid spec with definitions', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request, spec)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request, spec), []);
   });
 
   test('Should return return an errors for an existing but incorrect ref', () => {
@@ -240,7 +241,7 @@ describe('Given a valid spec with definitions', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request, spec)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request, spec), [{
       cursor: 'body:User.id',
       error: 'Value for id is required and was not provided',
     }]);
@@ -273,7 +274,7 @@ describe('Given a valid spec with no definitions', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'body',
       error: 'Could not find definition for #/definitions/User',
     }]);
@@ -325,7 +326,7 @@ describe('Given a valid path-level spec', () => {
       },
       method: 'get',
     };
-    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), []);
   });
 
   test('Should return errors for an invalid request from path level parameters', () => {
@@ -337,7 +338,7 @@ describe('Given a valid path-level spec', () => {
       headers: {},
       method: 'get',
     };
-    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
       cursor: 'headers.authorization',
       error: 'Value for authorization is required and was not provided',
     }]);
@@ -352,7 +353,7 @@ describe('Given a valid path-level spec', () => {
       headers: {},
       method: 'get',
     };
-    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
       cursor: 'headers.authorization',
       error: 'Value for authorization is required and was not provided',
     }]);
@@ -369,7 +370,7 @@ describe('Given a valid path-level spec', () => {
       },
       method: 'get',
     };
-    expect(validator(spec.paths['/foo/{id}'], request)).toEqual([{
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
       cursor: 'path.id',
       error: 'Value is not an integer',
     }]);
@@ -405,7 +406,7 @@ describe('Given a valid requestBody spec', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec, request), []);
   });
 
   test('Should return errors for an invalid request', () => {
@@ -416,7 +417,7 @@ describe('Given a valid requestBody spec', () => {
       },
       method: 'post',
     };
-    expect(validator(spec, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'body.operationId',
       error: 'Value is not an integer',
     }]);
@@ -459,7 +460,7 @@ describe('Given a valid webhook spec', () => {
       },
       method: 'post',
     };
-    expect(validator(spec.webhooks.petUpdated, request)).toEqual([]);
+    assert.deepStrictEqual(validator(spec.webhooks.petUpdated, request), []);
   });
 
   test('Should return errors for an invalid request', () => {
@@ -470,7 +471,7 @@ describe('Given a valid webhook spec', () => {
       },
       method: 'post',
     };
-    expect(validator(spec.webhooks.petUpdated, request)).toEqual([{
+    assert.deepStrictEqual(validator(spec.webhooks.petUpdated, request), [{
       cursor: 'body.operationId',
       error: 'Value is not an integer',
     }]);

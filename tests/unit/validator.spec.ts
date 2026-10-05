@@ -1,5 +1,7 @@
 import { test } from 'node:test';
-import {validateRequest as validator} from '../../src/request.ts';
+import assert from 'node:assert/strict';
+import {validateRequest} from '../../src/request.ts';
+import {validateResponse} from '../../src/response.ts';
 
 const spec = {
   parameters: [
@@ -14,7 +16,7 @@ const spec = {
   ],
   operationId: 'getPetById',
   responses: {
-    200: { description: 'ok' },
+    200: { description: 'ok', type: 'object' },
   },
 };
 
@@ -31,7 +33,7 @@ const badSpec = {
   ],
   operationId: 'getPetById',
   responses: {
-    200: { description: 'ok' },
+    200: { description: 'ok', type: 'bad-type' },
   },
 };
 
@@ -43,10 +45,24 @@ const request = {
   method: 'get'
 };
 
-test('valid spec', () => {
-  expect(validator(spec, request).length).toBe(0);
+const res = {
+  get: () => 'header',
+  req: request,
+  statusCode: 200
+}
+
+test('request valid spec', () => {
+  assert.strictEqual(validateRequest(spec, request).length, 0);
 });
 
-test('invalid spec', () => {
-  expect(validator.bind(null, badSpec, request)).toThrow('a');
+test('request invalid spec', () => {
+  assert.throws(validateRequest.bind(null, badSpec, request), 'a');
+});
+
+test('response valid spec', () => {
+  assert.strictEqual(validateResponse(spec, request, res).length, 0);
+});
+
+test('response invalid spec', () => {
+  assert.throws(validateResponse.bind(null, badSpec, request, res), 'a');
 });
