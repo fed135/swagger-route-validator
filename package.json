@@ -37,7 +37,8 @@
     "bench:sway": "node benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9002/pets/123",
     "bench:validator": "node benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9003/pets/123",
     "bench": "npm run bench:ajv && npm run bench:validator && npm run bench:srv",
-    "build": "rm -rf ./bin && tsc ./src/*.ts --target esnext --outDir bin"
+    "build": "rm -rf ./bin && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=bin/index.js --target=esnext",
+    "prepublishOnly": "npm run build"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
   "license": "Apache-2.0",
@@ -48,12 +49,12 @@
     "@types/eslint": "^9.6.0",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
 		"@typescript-eslint/parser": "^8.71.0",
+    "esbuild":"^0.28.2",
     "eslint": "^10.11.0",
     "express": "^5.2.0",
     "express-ajv-middleware": "^2.0.2",
     "express-openapi-validator": "^5.6.0",
     "husky": "^9.1.0",
-    "sway": "^2.0.6",
-    "typescript": "^6.0.0"
+    "sway": "^2.0.6"
   }
 }
