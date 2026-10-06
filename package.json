@@ -19,6 +19,10 @@
   "repository": {
     "url": "git+https://github.com/fed135/swagger-route-validator.git"
   },
+  "files": [
+    "bin",
+    "types.d.ts"
+  ],
   "husky": {
       "hooks": {
         "pre-push": "npm run lint"
@@ -33,7 +37,7 @@
     "bench:sway": "node benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9002/pets/123",
     "bench:validator": "node benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9003/pets/123",
     "bench": "npm run bench:ajv && npm run bench:validator && npm run bench:srv",
-    "build": "rm -rf ./bin && tsc"
+    "build": "rm -rf ./bin && tsc ./src/*.ts --target esnext --outDir bin"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
   "license": "Apache-2.0",
