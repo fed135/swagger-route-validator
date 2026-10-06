@@ -1,5 +1,8 @@
-import {format} from './format.ts';
-import {makeError} from './error.ts';
+import { createRequire } from 'node:module';
+import { format } from './format.ts';
+import { makeError } from './error.ts';
+
+const require = createRequire(import.meta.url);
 
 const propertyMap = {
   format,
@@ -33,7 +36,23 @@ export function set(req) {
   };
 }
 
-export function scanRef(path: string, spec: any) {
+const resolvedRefs = new WeakMap();
+
+export function scanRef(ref, spec) {
+  let refs = resolvedRefs.get(spec);
+  if (refs === undefined) {
+    refs = new Map();
+    resolvedRefs.set(spec, refs);
+  }
+  let target = refs.get(ref);
+  if (target === undefined) {
+    target = lookupRef(ref, spec);
+    refs.set(ref, target);
+  }
+  return target;
+}
+
+function lookupRef(path: string, spec: any) {
   // Check if the path is for an external reference
   const target = (path[0] !== '#') ? require(path.substring(0, path.indexOf('#') || path.length)) : spec;
   const pathTokens = path.substring(path.indexOf('#') + 1).split('/');
@@ -43,8 +62,7 @@ export function scanRef(path: string, spec: any) {
 export function validateValue(cursor, value, spec, setDefault, errors, fullSpec = {}) {
   if (value !== undefined && value !== null) {
     if (spec.schema) {
-      Object.assign(spec, spec.schema);
-      if (!spec.type) spec.type = 'object';
+      return validateValue(cursor, value, spec.schema, setDefault, errors, fullSpec);
     }
 
     if (spec.$ref) {
@@ -59,7 +77,7 @@ export function validateValue(cursor, value, spec, setDefault, errors, fullSpec 
       cursor += `:${refKey}`;
     }
 
-    type(cursor, value, spec.type, spec, setDefault, errors);
+    type(cursor, value, spec.type || 'object', spec, setDefault, errors);
 
     for (const prop in propertyMap) {
       if (spec[prop] !== undefined) {
@@ -214,18 +232,12 @@ function string(cursor, value, setDefault, errors) {
   if (typeof value !== 'string') {
     errors.push(makeError(cursor, value, 'Value is not a string'));
   }
-  else {
-    setDefault(cursor, value);
-  }
 }
 
 function number(cursor, value, setDefault, errors) {
   const parsedValue = Number(value);
   if (typeof parsedValue !== 'number' || Number.isNaN(parsedValue)) {
     errors.push(makeError(cursor, value, 'Value is not a number'));
-  }
-  else {
-    setDefault(cursor, parsedValue);
   }
 }
 
@@ -234,17 +246,13 @@ function integer(cursor, value, setDefault, errors) {
   if (!Number.isInteger(parsedValue)) {
     errors.push(makeError(cursor, value, 'Value is not an integer'));
   }
-  else {
-    setDefault(cursor, parsedValue);
-  }
 }
 
 function boolean(cursor, value, setDefault, errors) {
-  if (value !== true && value !== false && value !== 'true' && value !== 'false') {
-    errors.push(makeError(cursor, value, 'Value is not a boolean'));
-  }
+  if (value === 'true') setDefault(cursor, true);
+  else if (value === 'false') setDefault(cursor, false);
   else {
-    setDefault(cursor, value === 'true');
+    if (value !== true && value !== false) errors.push(makeError(cursor, value, 'Value is not a boolean'));
   }
 }
 
@@ -266,10 +274,9 @@ function list(cursor, value, spec, setDefault, errors) {
 function object(cursor, value, spec, setDefault, errors) {
   if (typeof value !== 'object' || Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an object'));
 
-  let count = 0;
-  for (let key in value) ++count;
-  if (spec.maxProperties !== null && count > spec.maxProperties) return errors.push(makeError(cursor, value, `Value has more properties than maximum: ${spec.maxProperties}`));
-  if (spec.minProperties !== null && count < spec.minProperties) return errors.push(makeError(cursor, value, `Value has fewer properties than minimum: ${spec.minProperties}`));
+  const props = Object.keys(value);
+  if (spec.maxProperties !== null && props.length > spec.maxProperties) return errors.push(makeError(cursor, value, `Value has more properties than maximum: ${spec.maxProperties}`));
+  if (spec.minProperties !== null && props.length < spec.minProperties) return errors.push(makeError(cursor, value, `Value has fewer properties than minimum: ${spec.minProperties}`));
 
   if (spec.required !== undefined && spec.required.length) {
     const missingKeys = spec.required.filter(key => !(key in value));
@@ -279,8 +286,8 @@ function object(cursor, value, spec, setDefault, errors) {
   }
 
   if (spec.additionalProperties === false) {
-    for (const prop in value) {
-      if (!(prop in spec.properties)) return errors.push(makeError(cursor, value, `Unexpected key ${prop} in object, additionalProperties not permitted`));
+    for (let i = 0; i < props.length; i++) {
+      if (!(props[i] in spec.properties)) return errors.push(makeError(cursor, value, `Unexpected key ${props[i]} in object, additionalProperties not permitted`));
     }
   }
 

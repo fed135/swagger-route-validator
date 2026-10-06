@@ -1,5 +1,10 @@
-import {makeError} from './error.ts';
-import { URL } from 'node:url';
+import { makeError } from './error.ts';
+import { isIPv4, isIPv6 } from 'node:net';
+
+const DATE_TIME = new RegExp(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(-)?(.[0-9:]+)?(Z)?$/);
+const DATE = new RegExp(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])$/);
+const UUID = new RegExp(/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i);
+const EMAIL = new RegExp(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/);
 
 const formatMap = {
   int8,
@@ -60,52 +65,43 @@ function int8(cursor, value, errors) {
 }
 
 function dateTime(cursor, value, errors) {
-  const result = new RegExp(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(-)?(.[0-9:]+)?(Z)?$/).exec(value);
-  if (result === null) {
+  if (!DATE_TIME.test(value)) {
     errors.push(makeError(cursor, value, `Value does not match ISO date-time (RFC 3339 date-time) pattern ex: 1970-12-31T23:59:60Z`));
   }
 }
 
 function date(cursor, value, errors) {
-  const result = new RegExp(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])$/).exec(value);
-  if (result === null) {
+  if (!DATE.test(value)) {
     errors.push(makeError(cursor, value, `Value does not match ISO date-time (RFC 3339 full-date) pattern ex: 1970-12-31`));
   }
 }
 
 function uuid(cursor, value, errors) {
-  const result = new RegExp(/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i).exec(value);
-  if (result === null) {
+  if (!UUID.test(value)) {
     errors.push(makeError(cursor, value, `Value does not match UUID pattern`));
   }
 }
 
 function uri(cursor, value, errors) {
-  try {
-    return new URL(value);
-  }
-  catch (err) {
+  if (!URL.canParse(value)) {
     errors.push(makeError(cursor, value, `Value does not match URI pattern`));
   }
 }
 
 function ipv4(cursor, value, errors) {
-  const result = new RegExp(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/).exec(value);
-  if (result === null) {
-    errors.push(makeError(cursor, value, `Value does not match IPV4 pattern`));
+  if (!isIPv4(value)) {
+    errors.push(makeError(cursor, value, `Value does not match ipv4 pattern`));
   }
 }
 
 function ipv6(cursor, value, errors) {
-  const result = new RegExp(/(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))/).exec(value);
-  if (result === null) {
+  if (!isIPv6(value)) {
     errors.push(makeError(cursor, value, `Value does not match ipv6 pattern`));
   }
 }
 
 function email(cursor, value, errors) {
-  const result = new RegExp(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/).exec(value);
-  if (result === null) {
+  if (!EMAIL.test(value)) {
     errors.push(makeError(cursor, value, `Value does not match email pattern`));
   }
 }

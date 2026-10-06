@@ -5,13 +5,13 @@ import { validateValue, set } from '../../../src/valueValidator.ts';
 const testValue = 'default';
 
 test(`Can apply ${testValue} values`, () => {
-  const obj:any = {};
+  const obj: any = {};
   assert.strictEqual(validateValue('foo', obj.foo, { [testValue]: 'a', type: 'string' }, set(obj), []).length, 0);
   assert.strictEqual(obj.foo, 'a');
 });
 
 test(`Can apply nested ${testValue} values`, () => {
-  const obj:any = { bar: {} };
+  const obj: any = { bar: {} };
   assert.strictEqual(validateValue('bar.foo', obj.bar.foo, { [testValue]: 'a', type: 'string' }, set(obj), []).length, 0);
   assert.strictEqual(obj.bar.foo, 'a');
 });

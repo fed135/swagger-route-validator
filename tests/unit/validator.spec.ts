@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {validateRequest} from '../../src/request.ts';
-import {validateResponse} from '../../src/response.ts';
+import { validateRequest } from '../../src/request.ts';
+import { validateResponse } from '../../src/response.ts';
 
 const spec = {
   parameters: [
@@ -42,14 +42,14 @@ const request = {
   params: {
     id: '123',
   },
-  method: 'get'
+  method: 'get',
 };
 
 const res = {
   get: () => 'header',
   req: request,
-  statusCode: 200
-}
+  statusCode: 200,
+};
 
 test('request valid spec', () => {
   assert.strictEqual(validateRequest(spec, request).length, 0);

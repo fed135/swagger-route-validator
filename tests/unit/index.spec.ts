@@ -1,6 +1,6 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import {validateRequest as validator} from '../../src/request.ts';
+import { validateRequest as validator } from '../../src/request.ts';
 
 describe('Given a valid spec with path parameters', () => {
   const spec = {
@@ -310,9 +310,9 @@ describe('Given a valid path-level spec', () => {
           responses: {
             200: { description: 'ok' },
           },
-        }
-      }
-    }
+        },
+      },
+    },
   };
 
   test('Should return no errors for a valid request', () => {
@@ -322,7 +322,7 @@ describe('Given a valid path-level spec', () => {
         id: '123',
       },
       headers: {
-        'authorization': '123',
+        authorization: '123',
       },
       method: 'get',
     };
@@ -366,7 +366,7 @@ describe('Given a valid path-level spec', () => {
         id: 'abc',
       },
       headers: {
-        'authorization': '123',
+        authorization: '123',
       },
       method: 'get',
     };
@@ -423,7 +423,6 @@ describe('Given a valid requestBody spec', () => {
     }]);
   });
 });
-
 
 describe('Given a valid webhook spec', () => {
   const spec = {

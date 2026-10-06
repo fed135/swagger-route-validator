@@ -29,9 +29,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "bench:ajv": "node benchmarks/ajv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
-    "bench:srv": "node benchmarks/srv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
-    "bench:sway": "node benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
-    "bench:validator": "node benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
+    "bench:srv": "node benchmarks/srv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9001/pets/123",
+    "bench:sway": "node benchmarks/sway.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9002/pets/123",
+    "bench:validator": "node benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9003/pets/123",
     "bench": "npm run bench:ajv && npm run bench:validator && npm run bench:srv",
     "build": "rm -rf ./bin && tsc"
   },
