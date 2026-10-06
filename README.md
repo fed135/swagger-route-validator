@@ -48,7 +48,6 @@ if (errors.length > 0) throw new Error(`Request object does not match the specif
 ```
 
 
-
 ### Response validation
 
 SRV also offers a method to validate response objects:
@@ -60,6 +59,19 @@ const errors = validateResponse(/* An object of the route's spec */, body, res, 
 if (errors.length > 0) throw new Error(`Response object does not match the specification for this route: ${JSON.stringify(errors)}`);
 
 ```
+
+
+### Plain object validation
+
+SRV can also `validate` on any given object:
+
+```javascript
+import {validate} from 'swagger-route-validator';
+
+const errors = validate({ type: 'integer' }, 123);
+if (errors.length > 0) throw new Error(`Object does not match the specification: ${JSON.stringify(errors)}`);
+```
+
 
 ## Running tests
 
@@ -73,17 +85,6 @@ npm run test
 npm run bench
 ```
 
-## Migration from 2.X to 3.X
-
-SRV no longer has a default export, your import statement will need to change from:
-
-`import validate from 'swagger-route-validator';`
-
-To:
-
-`import {validateRequest} from 'swagger-route-validator';`
-
-SRV will now also throw errors when meet with a malformed spec Object.
 
 ## License
 

@@ -10,6 +10,7 @@ commit [#](https://github.com/fed135/swagger-route-validator/commits)
 - Memoize $ref resolutions.
 - Modernized toolchain (undici -> fetch, jest -> node:test, linter configs).
 - Fixed setDefault running deep insertion on every primitive (big perf improvement)
+- Added a new export for a plain schema object validation (not limited to http request or response)
 
 ### Breaking changes
 
