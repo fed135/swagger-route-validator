@@ -96,7 +96,7 @@ describe('Express app', () => {
       const response = await res.json();
 
       assert.strictEqual(status, 200);
-      assert.deepStrictEqual(response, { id: '123', name: 'John Smith', age: 99 });
+      assert.deepStrictEqual(response, { id: 123, name: 'John Smith', age: 99 });
     });
 
     test('should reply with a 400 when sending invalid path parameters', async () => {

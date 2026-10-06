@@ -6,12 +6,18 @@ commit [#](https://github.com/fed135/swagger-route-validator/commits)
 
 ### Changelog
 
-- Package.json now has the needed "module" type.
+- package.json now has the needed "module" type.
 - Memoize $ref resolutions.
 - Modernized toolchain (undici -> fetch, jest -> node:test, linter configs).
+- Fixed setDefault running deep insertion on every primitive (big perf improvement)
+
+### Breaking changes
+
+- Error messages for missing required values now do not repeat cursor location in the message.
+- Fixed a bug where path-level values were not coersed.
 - Deprecated responseValidation middleware (dual-writes to headers, too hacky. recommended approach is to run validation inside your handler).
-- Using node built-in validators for ivp4, ipv6 and URI
-- Fixed setDefault running on every primitive
+- Using node built-in validators for ivp4, ipv6 and URI (Some values may no longer validate)
+
 
 (Consider storing cursor as an array)
 

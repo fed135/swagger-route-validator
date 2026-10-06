@@ -87,7 +87,7 @@ export function validateValue(cursor, value, spec, setDefault, errors, fullSpec 
   }
   else {
     if (spec.required === true || (spec.required === undefined && spec.default === undefined && spec.nullable != true)) {
-      errors.push(makeError(cursor, value, `Value for ${spec.name} is required and was not provided`));
+      errors.push(makeError(cursor, value, `Value is required and was not provided`));
     }
     if (spec.default !== undefined) {
       setDefault(cursor, spec.default);
@@ -239,6 +239,7 @@ function number(cursor, value, setDefault, errors) {
   if (typeof parsedValue !== 'number' || Number.isNaN(parsedValue)) {
     errors.push(makeError(cursor, value, 'Value is not a number'));
   }
+  setDefault(cursor, parsedValue);
 }
 
 function integer(cursor, value, setDefault, errors) {
@@ -246,14 +247,13 @@ function integer(cursor, value, setDefault, errors) {
   if (!Number.isInteger(parsedValue)) {
     errors.push(makeError(cursor, value, 'Value is not an integer'));
   }
+  setDefault(cursor, parsedValue);
 }
 
 function boolean(cursor, value, setDefault, errors) {
-  if (value === 'true') setDefault(cursor, true);
-  else if (value === 'false') setDefault(cursor, false);
-  else {
-    if (value !== true && value !== false) errors.push(makeError(cursor, value, 'Value is not a boolean'));
-  }
+  if (value === 'true' || value === true) setDefault(cursor, true);
+  else if (value === 'false' || value === false) setDefault(cursor, false);
+  else errors.push(makeError(cursor, value, 'Value is not a boolean'));
 }
 
 function list(cursor, value, spec, setDefault, errors) {
@@ -265,9 +265,7 @@ function list(cursor, value, spec, setDefault, errors) {
   if (spec.maxItems !== undefined && value.length > spec.maxItems) return errors.push(makeError(cursor, value, `Value exceeds the maximum number of items ${spec.maxItems}`));
   const param = spec.items || { type: 'any' };
   for (let i = 0; i < value.length; i++) {
-    const newCursor = `${cursor}[${i}]`;
-    param.name = 'items';
-    validateValue(newCursor, value[i], param, setDefault, errors);
+    validateValue(`${cursor}[${i}]`, value[i], param, (c, v) => value[i] = v, errors);
   }
 }
 
@@ -292,9 +290,6 @@ function object(cursor, value, spec, setDefault, errors) {
   }
 
   for (const prop in spec.properties) {
-    const param = spec.properties[prop];
-    const newCursor = `${cursor}.${prop}`;
-    param.name = prop;
-    validateValue(newCursor, value[prop], param, setDefault, errors);
+    validateValue(`${cursor}.${prop}`, value[prop], spec.properties[prop], (c, v) => value[prop] = v, errors);
   }
 }

@@ -92,11 +92,11 @@ describe('Given a valid spec with header parameters', () => {
     };
     assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'headers.authorization',
-      error: 'Value for authorization is required and was not provided',
+      error: 'Value is required and was not provided',
     },
     {
       cursor: 'headers.x-request-id',
-      error: 'Value for x-request-id is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 });
@@ -138,7 +138,7 @@ describe('Given a valid spec with query parameters', () => {
     };
     assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'query.userId',
-      error: 'Value for userId is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 });
@@ -188,7 +188,7 @@ describe('Given a valid spec with body parameters', () => {
     };
     assert.deepStrictEqual(validator(spec, request), [{
       cursor: 'body.operationId',
-      error: 'Value for operationId is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 });
@@ -243,7 +243,7 @@ describe('Given a valid spec with definitions', () => {
     };
     assert.deepStrictEqual(validator(spec, request, spec), [{
       cursor: 'body:User.id',
-      error: 'Value for id is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 });
@@ -340,7 +340,7 @@ describe('Given a valid path-level spec', () => {
     };
     assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
       cursor: 'headers.authorization',
-      error: 'Value for authorization is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 
@@ -355,7 +355,7 @@ describe('Given a valid path-level spec', () => {
     };
     assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
       cursor: 'headers.authorization',
-      error: 'Value for authorization is required and was not provided',
+      error: 'Value is required and was not provided',
     }]);
   });
 
