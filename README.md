@@ -81,6 +81,14 @@ npm run test
 
 ## Running benchmarks
 
+To perform performance regression testing:
+
+```
+npm run perf
+```
+
+To benchmark against similar libraries in a realistic scenario:
+
 ```
 npm run bench
 ```

@@ -38,6 +38,7 @@
     "bench:validator": "node benchmarks/openapiValidator.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9003/pets/123",
     "bench": "npm run bench:ajv && npm run bench:validator && npm run bench:srv",
     "build": "rm -rf ./bin && esbuild src/index.ts --bundle --platform=node --format=esm --packages=external --outfile=bin/index.js --target=esnext",
+    "perf": "node --experimental-bench --bench benchmarks/regression.ts",
     "prepublishOnly": "npm run build"
   },
   "author": "Frederic Charette <fredericcharette@gmail.com>",
