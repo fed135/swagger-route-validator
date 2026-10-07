@@ -7,9 +7,9 @@ interface Spec {
   host?: string
   basePath?: string
   info: {
-    title: string;
-    version: string;
-    description?: string;
+    title: string
+    version: string
+    description?: string
     contact?: MetaURLField
     license?: MetaURLField
     [customField: string]: any
@@ -22,10 +22,10 @@ interface Spec {
   externalDocs: MediaType
   tags: MetaURLField[]
   parameters?: {
-    [parameterName: string]: Parameter;
+    [parameterName: string]: Parameter
   }
   definitions?: {
-    [definitionName: string]: SchemaFormatConstraints;
+    [definitionName: string]: SchemaFormatConstraints
   }
   paths: {
     [route: string]: PathDefinition
@@ -36,8 +36,8 @@ interface Spec {
 }
 
 interface MetaURLField {
-  name?: string;
-  url: string;
+  name?: string
+  url: string
   [customField: string]: string
 }
 
@@ -55,8 +55,8 @@ interface RouteDefinition {
   description?: string
   requestBody: Schema
   responses?: {
-    default?: Schema | ResponseParameter;
-    [statusCode: number]: Schema | ResponseParameter;
+    default?: Schema | ResponseParameter
+    [statusCode: number]: Schema | ResponseParameter
   }
   operationId?: string
   parameters?: Parameter[]
@@ -65,127 +65,127 @@ interface RouteDefinition {
 }
 
 interface ResponseParameter {
-  description?: string;
+  description?: string
   content?: {
-    [mediaType: MediaType]: { schema: Schema}
+    [mediaType: MediaType]: { schema: Schema }
   }
 }
 
 type MediaType = 'application/json' | 'binary';
 
 type BaseParameter = {
-name: string;
-in: 'body' | 'query' | 'path' | 'header' | 'formData' | 'body';
-required?: boolean | undefined;
-description?: string | undefined;
+  name: string
+  in: 'body' | 'query' | 'path' | 'header' | 'formData' | 'body'
+  required?: boolean | undefined
+  description?: string | undefined
 };
 
 type BodyParameter = BaseParameter & {
-in: 'body';
-schema?: Schema | undefined;
+  in: 'body'
+  schema?: Schema | undefined
 };
 
 type GenericFormat = {
-type?: ParameterType | undefined;
-format?: string | undefined;
+  type?: ParameterType | undefined
+  format?: string | undefined
 };
 
 type IntegerFormat = {
-type: 'integer';
-format?: 'int32' | 'int64' | undefined;
+  type: 'integer'
+  format?: 'int32' | 'int64' | undefined
 };
 
 type NumberFormat = {
-type: 'number';
-format?: 'float' | 'double' | undefined;
+  type: 'number'
+  format?: 'float' | 'double' | undefined
 };
 
 type StringFormat = {
-type: 'string';
-format?: '' | 'byte' | 'binary' | 'date' | 'date-time' | 'password' | undefined;
+  type: 'string'
+  format?: '' | 'byte' | 'binary' | 'date' | 'date-time' | 'password' | undefined
 };
 
 type SchemaFormatConstraints = GenericFormat | IntegerFormat | NumberFormat | StringFormat;
 type BaseFormatContrainedParameter = BaseParameter & SchemaFormatConstraints;
 type ParameterCollectionFormat = 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
 
-type QueryParameter = BaseFormatContrainedParameter &
-BaseSchema & {
-in: 'query';
-allowEmptyValue?: boolean | undefined;
-collectionFormat?: ParameterCollectionFormat | undefined;
-};
+type QueryParameter = BaseFormatContrainedParameter
+  & BaseSchema & {
+    in: 'query'
+    allowEmptyValue?: boolean | undefined
+    collectionFormat?: ParameterCollectionFormat | undefined
+  };
 
-type PathParameter = BaseFormatContrainedParameter &
-BaseSchema & {
-in: 'path';
-required: true;
-};
+type PathParameter = BaseFormatContrainedParameter
+  & BaseSchema & {
+    in: 'path'
+    required: true
+  };
 
-type HeaderParameter = BaseFormatContrainedParameter &
-BaseSchema & {
-in: 'header';
-};
+type HeaderParameter = BaseFormatContrainedParameter
+  & BaseSchema & {
+    in: 'header'
+  };
 
-type FormDataParameter = BaseFormatContrainedParameter &
-BaseSchema & {
-in: 'formData';
-type: ParameterType | 'file';
-allowEmptyValue?: boolean | undefined;
-collectionFormat?: ParameterCollectionFormat | undefined;
-};
+type FormDataParameter = BaseFormatContrainedParameter
+  & BaseSchema & {
+    in: 'formData'
+    type: ParameterType | 'file'
+    allowEmptyValue?: boolean | undefined
+    collectionFormat?: ParameterCollectionFormat | undefined
+  };
 
 type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
 
 interface Reference {
-    $ref: string;
-  }
+  $ref: string
+}
 
 // ------------------------------ Schema -------------------------------------
 type BaseSchema = {
-type?: ParameterType | undefined;
-format?: string | undefined;
-title?: string | undefined;
-description?: string | undefined;
-default?: any;
-multipleOf?: number | undefined;
-maximum?: number | undefined;
-exclusiveMaximum?: boolean | undefined;
-minimum?: number | undefined;
-exclusiveMinimum?: boolean | undefined;
-maxLength?: number | undefined;
-minLength?: number | undefined;
-pattern?: string | undefined;
-maxItems?: number | undefined;
-minItems?: number | undefined;
-uniqueItems?: boolean | undefined;
-maxProperties?: number | undefined;
-minProperties?: number | undefined;
-enum?: any[] | undefined;
-items?: Schema | Schema[] | undefined;
+  type?: ParameterType | undefined
+  format?: string | undefined
+  title?: string | undefined
+  description?: string | undefined
+  default?: any
+  multipleOf?: number | undefined
+  maximum?: number | undefined
+  exclusiveMaximum?: boolean | undefined
+  minimum?: number | undefined
+  exclusiveMinimum?: boolean | undefined
+  maxLength?: number | undefined
+  minLength?: number | undefined
+  pattern?: string | undefined
+  maxItems?: number | undefined
+  minItems?: number | undefined
+  uniqueItems?: boolean | undefined
+  maxProperties?: number | undefined
+  minProperties?: number | undefined
+  enum?: any[] | undefined
+  items?: Schema | Schema[] | undefined
 };
 
 interface Schema extends BaseSchema {
-$ref?: string | undefined;
-allOf?: Schema[] | undefined;
-additionalProperties?: Schema | boolean | undefined;
-properties?: { [propertyName: string]: Schema } | undefined;
-discriminator?: string | undefined;
-readOnly?: boolean | undefined;
-example?: any;
-required?: string[] | undefined;
+  $ref?: string | undefined
+  allOf?: Schema[] | undefined
+  additionalProperties?: Schema | boolean | undefined
+  properties?: { [propertyName: string]: Schema } | undefined
+  discriminator?: string | undefined
+  readOnly?: boolean | undefined
+  example?: any
+  required?: string[] | undefined
 }
 
 interface Errors {
-error: string
-cursor: string
+  error: string
+  cursor: string
 }
 
 interface ExpressRequest {
-route?: {
-  url: string
-}
-method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  route?: {
+    url: string
+  }
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
 }
 
 interface ResponseValidationOptions {
@@ -199,14 +199,14 @@ interface ExpressResponse {
 }
 
 declare module 'swagger-route-validator' {
-  export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec): Errors[]
-  export function validateResponse(routeSpec: PathDefinition | RouteDefinition, body: any, res: Partial<ExpressResponse>, spec?: Spec): Errors[]
-  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: Function) => any
-  export function expressResponseValidation(routeSpec: PathDefinition | RouteDefinition, options?: ResponseValidationOptions, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: Function) => any
+  export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec): Errors[];
+  export function validateResponse(routeSpec: PathDefinition | RouteDefinition, body: any, res: Partial<ExpressResponse>, spec?: Spec): Errors[];
+  export function validate(schema: Schema, value: any, fullSpec?: Spec): Errors[];
+  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: () => void) => any;
   export interface OpenApiSpecification extends Spec {
-    openapi: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1'; 
+    openapi: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1'
   }
   export interface SwaggerSpecification extends Spec {
-    swagger: '1.0' | '1.1' | '1.2' | '2.0'; 
+    swagger: '1.0' | '1.1' | '1.2' | '2.0'
   }
 }

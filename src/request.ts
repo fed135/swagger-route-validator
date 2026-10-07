@@ -1,4 +1,4 @@
-import { validateValue, set } from './valueValidator';
+import { validateValue, set } from './valueValidator.ts';
 
 export function validateRequest(routeSpec, req, spec: any = {}, errors?: string[]) {
   errors = errors || [];
@@ -15,13 +15,14 @@ export function validateRequest(routeSpec, req, spec: any = {}, errors?: string[
 }
 
 function validateParameters(parameters, req, spec, errors) {
-    for (let i = 0; i < parameters.length; i++) {
-      const param = parameters[i];
-      const paramLocation = param.in === 'header' ? 'headers' : param.in;
+  for (let i = 0; i < parameters.length; i++) {
+    const param = parameters[i];
+    const paramLocation = param.in === 'header' ? 'headers' : param.in;
 
-      const value = paramLocation === 'body' ? req.body : (req[paramLocation] && req[paramLocation][param.name]) || (req.params && req.params[param.name]) || undefined;
-      const cursor = paramLocation === 'body' ? 'body' : `${paramLocation}.${param.name}`;
+    const parent = paramLocation === 'body' ? {} : (req[paramLocation]?.[param.name] ? req[paramLocation] : req.params);
+    const value = (paramLocation === 'body' ? req.body : parent?.[param.name]) || undefined;
+    const cursor = paramLocation === 'body' ? 'body' : `${paramLocation}.${param.name}`;
 
-      validateValue(cursor, value, param, set(req), errors, spec);
-    }
+    validateValue(cursor, value, param, (c, v) => parent[param.name] = v, errors, spec);
+  }
 }

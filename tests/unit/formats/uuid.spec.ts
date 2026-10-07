@@ -1,16 +1,18 @@
-import {format} from '../../../src/format';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { format } from '../../../src/format.ts';
 
 const testFormat = 'uuid';
 
 test(`Can detect valid ${testFormat} formats`, () => {
-  expect(format('', 'f37bfdec-bdda-4c07-9ba9-09f99885a5ff', testFormat, []).length).toBe(0);
-  expect(format('', '3b55e1ae-6ccb-4149-91e8-4c8920fb4465', testFormat, []).length).toBe(0);
+  assert.strictEqual(format('', 'f37bfdec-bdda-4c07-9ba9-09f99885a5ff', testFormat, []).length, 0);
+  assert.strictEqual(format('', '3b55e1ae-6ccb-4149-91e8-4c8920fb4465', testFormat, []).length, 0);
 });
 
 test(`Can detect invalid ${testFormat} formats`, () => {
-  expect(format('', '3b55e1ae-6ccb-4149-91e84c8920fb4465', testFormat, []).length).toBe(1);
-  expect(format('', '3b55e1ae-$ccb-4149-91e8-4c8920fb4465', testFormat, []).length).toBe(1);
-  expect(format('', '3b55e1ae 6ccb 4149 91e8 4c8920fb4465', testFormat, []).length).toBe(1);
-  expect(format('', '3b55e1ae6ccb414991e84c8920fb4465', testFormat, []).length).toBe(1);
-  expect(format('', 1557756500211, testFormat, []).length).toBe(1);
+  assert.strictEqual(format('', '3b55e1ae-6ccb-4149-91e84c8920fb4465', testFormat, []).length, 1);
+  assert.strictEqual(format('', '3b55e1ae-$ccb-4149-91e8-4c8920fb4465', testFormat, []).length, 1);
+  assert.strictEqual(format('', '3b55e1ae 6ccb 4149 91e8 4c8920fb4465', testFormat, []).length, 1);
+  assert.strictEqual(format('', '3b55e1ae6ccb414991e84c8920fb4465', testFormat, []).length, 1);
+  assert.strictEqual(format('', 1557756500211, testFormat, []).length, 1);
 });

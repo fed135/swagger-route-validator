@@ -47,26 +47,10 @@ if (errors.length > 0) throw new Error(`Request object does not match the specif
 
 ```
 
-Finally, if you want to put the validation middleware earlier in the stack (before routing) you could follow [this example](https://gist.github.com/fed135/7a45eab6510a78a5d514fae9a5cb6734). The middleware will try to match the request to a route from the spec. This could be used to retrospec an old API, but it is not recommenced for new services.
-
 
 ### Response validation
 
-SRV also offers a middleware for response validation:
-
-```javascript
-import {expressResponseValidation} from 'swagger-route-validator';
-import express from 'express';
-
-const app = express();
-
-app.get('/foo', expressResponseValidation(/* An object of the route's spec */, { behavior: 'error' }, /* The full spec */), (req, res, next) => {
-  res.send('Hello World!');
-});
-
-```
-
-As well as a direct validation function:
+SRV also offers a method to validate response objects:
 
 ```javascript
 import {validateResponse} from 'swagger-route-validator';
@@ -76,6 +60,19 @@ if (errors.length > 0) throw new Error(`Response object does not match the speci
 
 ```
 
+
+### Plain object validation
+
+SRV can also `validate` on any given object:
+
+```javascript
+import {validate} from 'swagger-route-validator';
+
+const errors = validate({ type: 'integer' }, 123);
+if (errors.length > 0) throw new Error(`Object does not match the specification: ${JSON.stringify(errors)}`);
+```
+
+
 ## Running tests
 
 ```
@@ -84,21 +81,18 @@ npm run test
 
 ## Running benchmarks
 
+To perform performance regression testing:
+
+```
+npm run perf
+```
+
+To benchmark against similar libraries in a realistic scenario:
+
 ```
 npm run bench
 ```
 
-## Migration from 2.X to 3.X
-
-SRV no longer has a default export, your import statement will need to change from:
-
-`import validate from 'swagger-route-validator';`
-
-To:
-
-`import {validateRequest} from 'swagger-route-validator';`
-
-SRV will now also throw errors when meet with a malformed spec Object.
 
 ## License
 
