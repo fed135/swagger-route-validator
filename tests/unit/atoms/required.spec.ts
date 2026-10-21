@@ -6,9 +6,9 @@ const setDefault = () => {};
 const testValue = 'required';
 
 test(`Can detect valid ${testValue} values`, () => {
-  assert.strictEqual(values('', 'abc', { [testValue]: true, type: 'string' }, setDefault, []).length, 0);
+  assert.strictEqual(values('', 'abc', { [testValue]: true, type: 'string' }, setDefault, { errors: [] }).length, 0);
 });
 
 test(`Can detect invalid ${testValue} values`, () => {
-  assert.strictEqual(values('', undefined, { [testValue]: true, type: 'string' }, setDefault, []).length, 1);
+  assert.deepStrictEqual(values('', undefined, { [testValue]: true, type: 'string' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value is required and was not provided' }]);
 });

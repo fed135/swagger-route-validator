@@ -41,7 +41,6 @@ swagger.create({ definition: {
         {
           name: 'id',
           in: 'path',
-          required: true,
           schema: {
             type: 'integer',
           },

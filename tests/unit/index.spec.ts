@@ -8,7 +8,6 @@ describe('Given a valid spec with path parameters', () => {
       {
         name: 'id',
         in: 'path',
-        required: true,
         schema: {
           type: 'integer',
         },
@@ -52,15 +51,13 @@ describe('Given a valid spec with header parameters', () => {
       {
         name: 'authorization',
         in: 'header',
-        required: true,
         schema: {
           type: 'string',
         },
       },
       {
         name: 'x-request-id',
-        in: 'headers',
-        required: true,
+        in: 'header',
         schema: {
           type: 'string',
         },
@@ -91,11 +88,11 @@ describe('Given a valid spec with header parameters', () => {
       method: 'get',
     };
     assert.deepStrictEqual(validator(spec, request), [{
-      cursor: 'headers.authorization',
+      cursor: 'header.authorization',
       error: 'Value is required and was not provided',
     },
     {
-      cursor: 'headers.x-request-id',
+      cursor: 'header.x-request-id',
       error: 'Value is required and was not provided',
     }]);
   });
@@ -107,7 +104,6 @@ describe('Given a valid spec with query parameters', () => {
       {
         name: 'userId',
         in: 'query',
-        required: true,
         schema: {
           type: 'string',
         },
@@ -145,22 +141,21 @@ describe('Given a valid spec with query parameters', () => {
 
 describe('Given a valid spec with body parameters', () => {
   const spec = {
-    parameters: [
-      {
-        name: 'body',
-        in: 'body',
-        required: true,
-        schema: {
-          type: 'object',
-          properties: {
-            operationId: {
-              type: 'string',
-              required: true,
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              operationId: {
+                type: 'string',
+              },
             },
+            required: ['operationId'],
           },
         },
       },
-    ],
+    },
     operationId: 'getPetById',
     responses: {
       200: { description: 'ok' },
@@ -187,8 +182,8 @@ describe('Given a valid spec with body parameters', () => {
       method: 'post',
     };
     assert.deepStrictEqual(validator(spec, request), [{
-      cursor: 'body.operationId',
-      error: 'Value is required and was not provided',
+      cursor: 'body',
+      error: 'Value is missing required keys [operationId]',
     }]);
   });
 });
@@ -201,21 +196,20 @@ describe('Given a valid spec with definitions', () => {
         properties: {
           id: {
             type: 'string',
-            required: true,
+          },
+        },
+        required: ['id'],
+      },
+    },
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/definitions/User',
           },
         },
       },
     },
-    parameters: [
-      {
-        name: 'body',
-        in: 'body',
-        required: true,
-        schema: {
-          $ref: '#/definitions/User',
-        },
-      },
-    ],
     operationId: 'getPetById',
     responses: {
       200: { description: 'ok' },
@@ -242,24 +236,23 @@ describe('Given a valid spec with definitions', () => {
       method: 'post',
     };
     assert.deepStrictEqual(validator(spec, request, spec), [{
-      cursor: 'body:User.id',
-      error: 'Value is required and was not provided',
+      cursor: 'body:User',
+      error: 'Value is missing required keys [id]',
     }]);
   });
 });
 
 describe('Given a valid spec with no definitions', () => {
   const spec = {
-    parameters: [
-      {
-        name: 'body',
-        in: 'body',
-        required: true,
-        schema: {
-          $ref: '#/definitions/User',
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/definitions/User',
+          },
         },
       },
-    ],
+    },
     operationId: 'getPetById',
     responses: {
       200: { description: 'ok' },
@@ -285,18 +278,16 @@ describe('Given a valid path-level spec', () => {
   const spec = {
     paths: {
       '/foo/{id}': {
-        parameters: [
-          {
-            name: 'authorization',
-            in: 'header',
-            required: true,
-            schema: {
-              type: 'string',
-            },
-          },
-        ],
         get: {
           parameters: [
+            {
+              name: 'authorization',
+              in: 'header',
+              required: true,
+              schema: {
+                type: 'string',
+              },
+            },
             {
               name: 'id',
               in: 'path',
@@ -326,7 +317,7 @@ describe('Given a valid path-level spec', () => {
       },
       method: 'get',
     };
-    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), []);
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'].get, request), []);
   });
 
   test('Should return errors for an invalid request from path level parameters', () => {
@@ -338,13 +329,13 @@ describe('Given a valid path-level spec', () => {
       headers: {},
       method: 'get',
     };
-    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
-      cursor: 'headers.authorization',
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'].get, request), [{
+      cursor: 'header.authorization',
       error: 'Value is required and was not provided',
     }]);
   });
 
-  test('Should return path level errors first, for an invalid request from method level parameters', () => {
+  test('Should return all errors, for an invalid request from multiple parameters', () => {
     const request = {
       url: '/foo/123',
       params: {
@@ -353,15 +344,15 @@ describe('Given a valid path-level spec', () => {
       headers: {},
       method: 'get',
     };
-    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
-      cursor: 'headers.authorization',
-      error: 'Value is required and was not provided',
-    }]);
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'].get, request), [
+      { cursor: 'header.authorization', error: 'Value is required and was not provided' },
+      { cursor: 'path.id', error: 'Value is not an integer' },
+    ]);
   });
 
   test('Should return errors for an invalid request from method level parameters', () => {
     const request = {
-      url: '/foo/123',
+      url: '/foo/abc',
       params: {
         id: 'abc',
       },
@@ -370,7 +361,7 @@ describe('Given a valid path-level spec', () => {
       },
       method: 'get',
     };
-    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'], request), [{
+    assert.deepStrictEqual(validator(spec.paths['/foo/{id}'].get, request), [{
       cursor: 'path.id',
       error: 'Value is not an integer',
     }]);
@@ -381,13 +372,15 @@ describe('Given a valid requestBody spec', () => {
   const spec = {
     requestBody: {
       content: {
-        schema: {
-          type: 'object',
-          properties: {
-            operationId: {
-              type: 'integer',
-              required: true,
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: {
+              operationId: {
+                type: 'integer',
+              },
             },
+            required: ['operationId'],
           },
         },
       },
@@ -431,12 +424,14 @@ describe('Given a valid webhook spec', () => {
         post: {
           requestBody: {
             content: {
-              schema: {
-                type: 'object',
-                properties: {
-                  operationId: {
-                    type: 'integer',
-                    required: true,
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    operationId: {
+                      type: 'integer',
+                      required: true,
+                    },
                   },
                 },
               },
@@ -459,7 +454,7 @@ describe('Given a valid webhook spec', () => {
       },
       method: 'post',
     };
-    assert.deepStrictEqual(validator(spec.webhooks.petUpdated, request), []);
+    assert.deepStrictEqual(validator(spec.webhooks.petUpdated.post, request), []);
   });
 
   test('Should return errors for an invalid request', () => {
@@ -470,7 +465,7 @@ describe('Given a valid webhook spec', () => {
       },
       method: 'post',
     };
-    assert.deepStrictEqual(validator(spec.webhooks.petUpdated, request), [{
+    assert.deepStrictEqual(validator(spec.webhooks.petUpdated.post, request), [{
       cursor: 'body.operationId',
       error: 'Value is not an integer',
     }]);

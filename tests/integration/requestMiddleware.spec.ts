@@ -26,7 +26,7 @@ describe('Express app', () => {
       user: {
         type: 'object',
         properties: {
-          id: { type: 'string', required: true },
+          id: { type: 'string' },
           name: { type: 'string' },
           age: { type: 'number' },
         },
@@ -38,8 +38,9 @@ describe('Express app', () => {
           {
             name: 'authorization',
             in: 'header',
-            required: true,
-            type: 'string',
+            schema: {
+              type: 'string',
+            },
           },
         ],
         get: {
@@ -48,7 +49,9 @@ describe('Express app', () => {
             {
               name: 'id',
               in: 'path',
-              type: 'integer',
+              schema: {
+                type: 'integer',
+              },
             },
           ],
           responses: {

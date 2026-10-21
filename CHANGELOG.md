@@ -1,5 +1,35 @@
 # Changelog
 
+## [v5.0.0] -
+
+commit [#](https://github.com/fed135/swagger-route-validator/commits)
+
+### Changelog
+
+- Added a new `coerce` option to `validate`, `validateRequest` and `expressRequestValidation` (Default: true), which disables modifiying tested objects' values through type coercion. 
+- Cleanup in `types.d.ts`
+- Added missing support for OAS features
+  - 'cookie' location
+  - Added support for the full list of OAS [formats](https://spec.openapis.org/registry/format/)
+  - 'discriminator' objects
+  - 'deprecated' operation flag
+  - Added tests for multiple formats: binary, bytes, password
+- Added support for OAS 3.2 features
+  - HTTP 'QUERY' verb
+- TS Docs clearly list supported OAS features 
+
+### Breaking changes
+
+- Removed support for `required: boolean` on Schema parts (except Parameters). As per the official OAS spec. This may cause previously passing validations to now fail!
+- Removed support for arbitrary or unsupported Parameter locations, such as `headers`. This may cause previously passing validations to now fail!
+- Removed support for legacy Swagger and pre 3.x OAS specifications. `in: 'body'` location will now throw an error. Fixed typings for `requestBody` content types
+- `validateRequest` and `expressRequestValidation` no longer accept PathDefinitions. HTTP Verb must be resolved so a RouteDefinition spec if provided.
+- Removed non-compliant `list` Schema type
+- Renamed non-compliant `enumeration` atom to the official `enum`.
+- Parameters now require schema properties in the official `schema` property.
+- Removed non-compliant `require: boolean` on Schema parts
+- Removed non-compliant `parameters` object at the PathDefinition layer.
+
 ## [v4.0.0] - 2026-10-06
 
 commit [#](https://github.com/fed135/swagger-route-validator/commits)

@@ -1,18 +1,18 @@
 import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { format } from '../../../src/format.ts';
+import { formatString as format } from '../../../src/format.ts';
+import { expect } from '../utils.ts';
 
 const testFormat = 'date';
 
 test(`Can detect valid ${testFormat} formats`, () => {
-  assert.strictEqual(format('', '2002-10-02', testFormat, []).length, 0);
-  assert.strictEqual(format('', (new Date()).toLocaleDateString('fr-CA'), testFormat, []).length, 0);
+  format('2002-10-02', testFormat, expect(true));
+  format((new Date()).toLocaleDateString('fr-CA'), testFormat, expect(true));
 });
 
 test(`Can detect invalid ${testFormat} formats`, () => {
-  assert.strictEqual(format('', '2002-13-02', testFormat, []).length, 1);
-  assert.strictEqual(format('', '2002-10-32', testFormat, []).length, 1);
-  assert.strictEqual(format('', '10-02-2002', testFormat, []).length, 1);
-  assert.strictEqual(format('', 'January 1st 2002', testFormat, []).length, 1);
-  assert.strictEqual(format('', 1557756500211, testFormat, []).length, 1);
+  format('2002-13-02', testFormat, expect(false));
+  format('2002-10-32', testFormat, expect(false));
+  format('10-02-2002', testFormat, expect(false));
+  format('January 1st 2002', testFormat, expect(false));
+  format(1557756500211, testFormat, expect(false));
 });

@@ -29,7 +29,7 @@
       }
     },
   "scripts": {
-    "test": "node --test ./tests/*/*.spec.ts",
+    "test": "node --test \"./tests/**/*.spec.ts\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "bench:ajv": "node benchmarks/ajv.ts & sleep 3 && ab -c 250 -n 100000 http://localhost:9000/pets/123",
@@ -50,6 +50,8 @@
     "@types/eslint": "^9.6.0",
     "@typescript-eslint/eslint-plugin": "^8.71.0",
 		"@typescript-eslint/parser": "^8.71.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "esbuild":"^0.28.2",
     "eslint": "^10.11.0",
     "express": "^5.2.0",

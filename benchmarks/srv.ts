@@ -6,7 +6,6 @@ const spec = {
     {
       name: 'id',
       in: 'path',
-      required: true,
       schema: {
         type: 'integer',
       },

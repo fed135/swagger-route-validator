@@ -1,7 +1,7 @@
-import { validateValue, set } from './valueValidator.ts';
+import { validateValue } from './valueValidator.ts';
 
 export function validateResponse(routeSpec, response, res, spec: any = {}) {
-  const errors = [];
+  const context = { errors: [], fullSpec: spec, coerce: false };
 
   if (!routeSpec.responses[res.statusCode] && !routeSpec.responses['default']) {
     throw new Error(`Response status code "${res.statusCode}" not present in spec for this route and no default responses could be found.`);
@@ -9,12 +9,12 @@ export function validateResponse(routeSpec, response, res, spec: any = {}) {
 
   const responseObj = routeSpec.responses[res.statusCode] || routeSpec.responses[(`${res.statusCode}`[0]) + 'XX'] || routeSpec.responses['default'];
 
-  validateValue('', response, routeSpec[res.req?.method?.toLowerCase()] || responseObj.content ? responseObj.content['application/json'] : responseObj, set(response), errors, spec);
+  validateValue('', response, routeSpec[res.req?.method?.toLowerCase()] || responseObj.content ? responseObj.content['application/json'] : responseObj, () => {}, context);
   if (responseObj.headers) {
     for (let h in responseObj.headers) {
-      validateValue(`header.${h}`, res.get(h), { name: h, ...responseObj.headers[h] }, () => {}, errors, {});
+      validateValue(`header.${h}`, res.get(h), { name: h, ...responseObj.headers[h] }, () => {}, context);
     }
   }
 
-  return errors;
+  return context.errors;
 }

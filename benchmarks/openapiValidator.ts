@@ -20,7 +20,6 @@ app.use(
               {
                 name: 'id',
                 in: 'path',
-                required: true,
                 schema: {
                   type: 'integer',
                 },

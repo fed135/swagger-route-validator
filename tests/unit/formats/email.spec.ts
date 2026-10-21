@@ -1,18 +1,18 @@
 import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { format } from '../../../src/format.ts';
+import { expect } from '../utils.ts';
+import { formatString as format } from '../../../src/format.ts';
 
 const testFormat = 'email';
 
 test(`Can detect valid ${testFormat} formats`, () => {
-  assert.strictEqual(format('', 'me@mail.com', testFormat, []).length, 0);
-  assert.strictEqual(format('', 'me+spam@mail.com', testFormat, []).length, 0);
-  assert.strictEqual(format('', 'me@mailcom', testFormat, []).length, 0);
+  format('me@mail.com', testFormat, expect(true));
+  format('me+spam@mail.com', testFormat, expect(true));
+  format('me@mailcom', testFormat, expect(true));
 });
 
 test(`Can detect invalid ${testFormat} formats`, () => {
-  assert.strictEqual(format('', 'me@mail..com', testFormat, []).length, 1);
-  assert.strictEqual(format('', 'mail.com', testFormat, []).length, 1);
-  assert.strictEqual(format('', 'me @ mail . com', testFormat, []).length, 1);
-  assert.strictEqual(format('', 1557756500211, testFormat, []).length, 1);
+  format('me@mail..com', testFormat, expect(false));
+  format('mail.com', testFormat, expect(false));
+  format('me @ mail . com', testFormat, expect(false));
+  format(1557756500211, testFormat, expect(false));
 });

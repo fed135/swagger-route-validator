@@ -1,8 +1,15 @@
-type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file';
+type SupportedParameterTypes = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file' | 'any';
+type SupportedStringFormats = 'byte' | 'binary' | 'password' | 'date' | 'date-time' | 'uuid' | 'uri' | 'ipv4' | 'ipv6' | 'email';
+type SupportedFloatingFormats = 'double' | 'float';
+type SupportedIntegerFormats = 'int8' | 'int16' | 'int32' | 'int64';
+type SupportedNumericFormats = SupportedFloatingFormats | SupportedIntegerFormats;
+type SupportedLocations = 'query' | 'path' | 'header' | 'cookie';
+type SupportedOASVersions = '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1' | '3.2.0' | '3.2.1';
+type SupportedMediaTypes = 'application/json';
+type SupportedHTTPVerbs = 'get' | 'post' | 'patch' | 'put' | 'delete' | 'query' | 'head';
 
 interface Spec {
-  swagger?: string
-  openapi?: string
+  openapi: SupportedOASVersions
   schemes?: string[]
   host?: string
   basePath?: string
@@ -15,45 +22,43 @@ interface Spec {
     [customField: string]: any
   }
   termsOfService?: string
-  consumes?: MediaType[]
-  produces?: MediaType[]
+  consumes?: SupportedMediaTypes[]
+  produces?: SupportedMediaTypes[]
   servers?: MetaURLField[]
   securityDefinitions?: any
-  externalDocs: MediaType
-  tags: MetaURLField[]
-  parameters?: {
-    [parameterName: string]: Parameter
-  }
-  definitions?: {
-    [definitionName: string]: SchemaFormatConstraints
-  }
-  paths: {
-    [route: string]: PathDefinition
-  }
-  webhooks: {
-    [webhookName: string]: PathDefinition
-  }
+  externalDocs?: MetaURLField
+  tags?: MetaTagField[]
+  parameters?: Record<string, Parameter>
+  definitions?: Record<string, SchemaFormatConstraints>
+  paths?: Record<string, PathDefinition>
+  webhooks?: Record<string, PathDefinition>
 }
 
 interface MetaURLField {
-  name?: string
+  name: string
   url: string
   [customField: string]: string
 }
 
-interface PathDefinition {
-  get?: RouteDefinition
-  put?: RouteDefinition
-  post?: RouteDefinition
-  delete?: RouteDefinition
-  patch?: RouteDefinition
-  parameters?: Parameter[]
+interface MetaTagField {
+  name: string
+  summary?: string
+  description?: string
+  externalDocs?: MetaURLField
+  parent?: string
+  kind?: string
 }
+
+type PathDefinition = Record<SupportedHTTPVerbs, RouteDefinition>;
 
 interface RouteDefinition {
   summary?: string
   description?: string
-  requestBody: Schema
+  requestBody?: {
+    description?: string
+    required?: boolean
+    content: Record<SupportedMediaTypes, Schema>
+  }
   responses?: {
     default?: Schema | ResponseParameter
     [statusCode: number]: Schema | ResponseParameter
@@ -62,47 +67,40 @@ interface RouteDefinition {
   parameters?: Parameter[]
   security?: any
   tags?: string[]
+  deprecated?: boolean
 }
 
 interface ResponseParameter {
+  summary?: string
   description?: string
-  content?: {
-    [mediaType: MediaType]: { schema: Schema }
-  }
+  content?: Record<SupportedMediaTypes, Schema>
 }
-
-type MediaType = 'application/json' | 'binary';
 
 type BaseParameter = {
   name: string
-  in: 'body' | 'query' | 'path' | 'header' | 'formData' | 'body'
-  required?: boolean | undefined
-  description?: string | undefined
-};
-
-type BodyParameter = BaseParameter & {
-  in: 'body'
-  schema?: Schema | undefined
+  in: SupportedLocations
+  description?: string
+  required?: boolean
 };
 
 type GenericFormat = {
-  type?: ParameterType | undefined
-  format?: string | undefined
+  type?: SupportedParameterTypes
+  format?: string
 };
 
 type IntegerFormat = {
   type: 'integer'
-  format?: 'int32' | 'int64' | undefined
+  format?: SupportedIntegerFormats
 };
 
 type NumberFormat = {
   type: 'number'
-  format?: 'float' | 'double' | undefined
+  format?: SupportedFloatingFormats
 };
 
 type StringFormat = {
   type: 'string'
-  format?: '' | 'byte' | 'binary' | 'date' | 'date-time' | 'password' | undefined
+  format?: SupportedStringFormats
 };
 
 type SchemaFormatConstraints = GenericFormat | IntegerFormat | NumberFormat | StringFormat;
@@ -110,70 +108,63 @@ type BaseFormatContrainedParameter = BaseParameter & SchemaFormatConstraints;
 type ParameterCollectionFormat = 'csv' | 'ssv' | 'tsv' | 'pipes' | 'multi';
 
 type QueryParameter = BaseFormatContrainedParameter
-  & BaseSchema & {
-    in: 'query'
-    allowEmptyValue?: boolean | undefined
-    collectionFormat?: ParameterCollectionFormat | undefined
+  & Schema & {
+    in: 'query' | 'querystring'
+    allowEmptyValue?: boolean
+    collectionFormat?: ParameterCollectionFormat
   };
 
 type PathParameter = BaseFormatContrainedParameter
-  & BaseSchema & {
+  & Schema & {
     in: 'path'
-    required: true
   };
 
 type HeaderParameter = BaseFormatContrainedParameter
-  & BaseSchema & {
+  & Schema & {
     in: 'header'
   };
 
-type FormDataParameter = BaseFormatContrainedParameter
-  & BaseSchema & {
-    in: 'formData'
-    type: ParameterType | 'file'
-    allowEmptyValue?: boolean | undefined
-    collectionFormat?: ParameterCollectionFormat | undefined
+type CookieParameter = BaseFormatContrainedParameter
+  & Schema & {
+    in: 'cookie'
   };
 
-type Parameter = BodyParameter | FormDataParameter | QueryParameter | PathParameter | HeaderParameter;
+type Parameter = QueryParameter | PathParameter | HeaderParameter | CookieParameter;
 
-interface Reference {
-  $ref: string
-}
-
-// ------------------------------ Schema -------------------------------------
 type BaseSchema = {
-  type?: ParameterType | undefined
-  format?: string | undefined
-  title?: string | undefined
-  description?: string | undefined
+  type?: SupportedParameterTypes
+  format?: SupportedNumericFormats | SupportedStringFormats
+  title?: string
+  description?: string
   default?: any
-  multipleOf?: number | undefined
-  maximum?: number | undefined
-  exclusiveMaximum?: boolean | undefined
-  minimum?: number | undefined
-  exclusiveMinimum?: boolean | undefined
-  maxLength?: number | undefined
-  minLength?: number | undefined
-  pattern?: string | undefined
-  maxItems?: number | undefined
-  minItems?: number | undefined
-  uniqueItems?: boolean | undefined
-  maxProperties?: number | undefined
-  minProperties?: number | undefined
-  enum?: any[] | undefined
-  items?: Schema | Schema[] | undefined
+  multipleOf?: number
+  maximum?: number
+  exclusiveMaximum?: boolean
+  minimum?: number
+  exclusiveMinimum?: boolean
+  maxLength?: number
+  minLength?: number
+  pattern?: string
+  maxItems?: number
+  minItems?: number
+  uniqueItems?: boolean
+  maxProperties?: number
+  minProperties?: number
+  enum?: any[]
+  items?: Schema
 };
 
 interface Schema extends BaseSchema {
-  $ref?: string | undefined
-  allOf?: Schema[] | undefined
-  additionalProperties?: Schema | boolean | undefined
-  properties?: { [propertyName: string]: Schema } | undefined
-  discriminator?: string | undefined
-  readOnly?: boolean | undefined
+  $ref?: string
+  allOf?: Schema[]
+  additionalProperties?: Schema | boolean
+  properties?: Record<string, Schema>
+  discriminator?: string
+  readOnly?: boolean
   example?: any
-  required?: string[] | undefined
+  required?: string[]
+  nullable?: boolean
+  schema?: Schema
 }
 
 interface Errors {
@@ -185,28 +176,19 @@ interface ExpressRequest {
   route?: {
     url: string
   }
-  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
-}
-
-interface ResponseValidationOptions {
-  behavior?: 'warn' | 'error'
+  method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE' | 'QUERY'
 }
 
 interface ExpressResponse {
   req: ExpressRequest
   get: (headerName: string) => string
-  statusCode: integer
+  statusCode: number
 }
 
 declare module 'swagger-route-validator' {
-  export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec): Errors[];
+  export function validateRequest(routeSpec: PathDefinition | RouteDefinition, req: Partial<ExpressRequest>, spec?: Spec, coerce?: boolean): Errors[];
   export function validateResponse(routeSpec: PathDefinition | RouteDefinition, body: any, res: Partial<ExpressResponse>, spec?: Spec): Errors[];
-  export function validate(schema: Schema, value: any, fullSpec?: Spec): Errors[];
-  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: () => void) => any;
-  export interface OpenApiSpecification extends Spec {
-    openapi: '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1'
-  }
-  export interface SwaggerSpecification extends Spec {
-    swagger: '1.0' | '1.1' | '1.2' | '2.0'
-  }
+  export function validate(schema: Schema, value: any, fullSpec?: Spec, coerce?: boolean): Errors[];
+  export function expressRequestValidation(routeSpec: PathDefinition | RouteDefinition, spec?: Spec, coerce?: boolean): (req: Partial<ExpressRequest>, res: Partial<ExpressResponse>, next: () => void) => any;
+  export type OpenApiSpecification = Spec;
 }

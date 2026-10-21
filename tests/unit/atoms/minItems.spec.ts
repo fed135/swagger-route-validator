@@ -1,0 +1,16 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { validateValue as values } from '../../../src/valueValidator.ts';
+
+const setDefault = () => {};
+const testValue = 'minItems';
+
+test(`Can detect valid ${testValue} values`, () => {
+  assert.strictEqual(values('', ['foo'], { [testValue]: 1, type: 'array' }, setDefault, { errors: [] }).length, 0);
+  assert.strictEqual(values('', ['foo', 'bar', 'baz'], { [testValue]: 1, type: 'array' }, setDefault, { errors: [] }).length, 0);
+  assert.strictEqual(values('', [], { [testValue]: 0, type: 'array' }, setDefault, { errors: [] }).length, 0);
+});
+
+test(`Can detect invalid ${testValue} values`, () => {
+  assert.deepStrictEqual(values('', [], { [testValue]: 1, type: 'array' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not meet the minimum number of items 1' }]);
+});
