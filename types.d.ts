@@ -139,9 +139,7 @@ type BaseSchema = {
   default?: any
   multipleOf?: number
   maximum?: number
-  exclusiveMaximum?: boolean
   minimum?: number
-  exclusiveMinimum?: boolean
   maxLength?: number
   minLength?: number
   pattern?: string
@@ -157,6 +155,9 @@ type BaseSchema = {
 interface Schema extends BaseSchema {
   $ref?: string
   allOf?: Schema[]
+  oneOf?: Schema[]
+  anyOf?: Schema[]
+  not?: Schema
   additionalProperties?: Schema | boolean
   properties?: Record<string, Schema>
   discriminator?: string

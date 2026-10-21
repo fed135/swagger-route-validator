@@ -13,29 +13,6 @@ export type Context = {
   coerce: boolean
 };
 
-type AtomFunction<T, U> = (value: T, expectation: U, context: Context, failIf: ErrorAccumulator) => void;
-
-const atoms = {
-  // format             // Handled by parent
-  pattern,
-  enum: enumeration,
-  minimum,
-  maximum,
-  exclusiveMinimum,
-  exclusiveMaximum,
-  // maxItems           // Handled by parent
-  // minItems           // Handled by parent
-  // maxProperties      // Handled by parent
-  // minProperties      // Handled by parent
-  minLength,
-  maxLength,
-  multipleOf,
-  $not: isNot,
-  $allOf: isAllOf,
-  $anyOf: isAnyOf,
-  $oneOf: isOneOf,
-} satisfies Record<string, AtomFunction<any, any>>;
-
 const regexpCache: { [key: string]: RegExp } = {};
 
 export function lookupRef(path: string, spec: Spec) {
@@ -62,7 +39,7 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
 
     if (failIf(!loadedSpec, `Could not find definition for ${refName}`)) return context.errors;
 
-    return validateValue(cursor + `:${refKey}`, value, loadedSpec, setValue, context);
+    return validateValue(`${cursor}:${refKey}`, value, loadedSpec, setValue, context);
   }
 
   // set default
@@ -80,8 +57,6 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
   // typecheck and coersion
   type(cursor, value, spec.type || 'object', spec, context.coerce === true ? setValue : noop, context, failIf);
 
-  // TODO: test coersion being reflected in following calls...
-
   // number formats
   if ((spec.type === 'integer' || spec.type === 'number') && spec.format) formatNumber(value, spec.format, failIf);
 
@@ -89,11 +64,18 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
   if ((spec.type === 'string') && spec.format) formatString(value, spec.format, failIf);
 
   // atoms
-  for (const prop in atoms) {
-    if (spec.hasOwnProperty(prop)) {
-      atoms[prop](value, spec[prop], context, failIf);
-    }
-  }
+
+  if (spec.pattern) pattern(value, spec.pattern, context, failIf);
+  if (spec.enum) enumeration(value, spec.enum, context, failIf);
+  if (spec.minimum) minimum(value, spec.minimum, context, failIf);
+  if (spec.maximum) maximum(value, spec.maximum, context, failIf);
+  if (spec.minLength) minLength(value, spec.minLength, context, failIf);
+  if (spec.maxLength) maxLength(value, spec.maxLength, context, failIf);
+  if (spec.multipleOf) multipleOf(value, spec.multipleOf, context, failIf);
+  if (spec.not) isNot(value, spec.not, context, failIf);
+  if (spec.allOf) isAllOf(value, spec.allOf, context, failIf);
+  if (spec.anyOf) isAnyOf(value, spec.anyOf, context, failIf);
+  if (spec.oneOf) isOneOf(value, spec.oneOf, context, failIf);
 
   return context.errors;
 }
@@ -115,14 +97,6 @@ function minimum(value: number, expectation: number, context: Context, failIf: E
 
 function maximum(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
   failIf(value > expectation, `Value is larger than minimum: ${expectation}`);
-}
-
-function exclusiveMinimum(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
-  failIf(value <= expectation, `Value is smaller or equal the minimum: ${expectation}`);
-}
-
-function exclusiveMaximum(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
-  failIf(value >= expectation, `Value is larger or equal the maximum: ${expectation}`);
 }
 
 function enumeration(value: string, expectation: string[], context: Context, failIf: ErrorAccumulator) {
@@ -231,12 +205,12 @@ function list(cursor: string, value: any, spec: Schema, setValue: (value: any) =
 
   if (!Array.isArray(value)) setValue(parsedValue);
 
-  failIf(spec.minItems !== undefined && value.length < spec.minItems, `Value does not meet the minimum number of items ${spec.minItems}`);
-  failIf(spec.maxItems !== undefined && value.length > spec.maxItems, `Value exceeds the maximum number of items ${spec.maxItems}`);
+  failIf(spec.minItems !== undefined && parsedValue.length < spec.minItems, `Value does not meet the minimum number of items ${spec.minItems}`);
+  failIf(spec.maxItems !== undefined && parsedValue.length > spec.maxItems, `Value exceeds the maximum number of items ${spec.maxItems}`);
 
   const param = spec.items || { type: 'any' };
-  for (let i = 0; i < value.length; i++) {
-    validateValue(`${cursor}[${i}]`, value[i], param, v => value[i] = v, context);
+  for (let i = 0; i < parsedValue.length; i++) {
+    validateValue(`${cursor}[${i}]`, parsedValue[i], param, (typeof value !== 'string') ? v => value[i] = v : noop, context);
   }
 }
 

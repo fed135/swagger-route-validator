@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { validateValue as values } from '../../../src/valueValidator.ts';
 
 const setDefault = () => {};
-const testValue = '$allOf';
+const testValue = 'allOf';
 
 test(`Can detect valid ${testValue} values`, () => {
   assert.strictEqual(values('', 2.5, { [testValue]: { type: 'number', minimum: 2 }, type: 'number' }, setDefault, { errors: [] }).length, 0);

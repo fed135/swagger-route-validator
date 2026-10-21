@@ -29,6 +29,8 @@ commit [#](https://github.com/fed135/swagger-route-validator/commits)
 - Parameters now require schema properties in the official `schema` property.
 - Removed non-compliant `require: boolean` on Schema parts
 - Removed non-compliant `parameters` object at the PathDefinition layer.
+- Removed non-compliant `exclusiveMaximum` and `exclusiveMinimum`
+- Renamed non-compliant keywords `$not`, `$anyOf`, `$allOf`, `$oneOf` to their official version without the `$`
 
 ## [v4.0.0] - 2026-10-06
 
