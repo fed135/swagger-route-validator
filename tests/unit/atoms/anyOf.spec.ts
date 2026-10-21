@@ -11,6 +11,6 @@ test(`Can detect valid ${testValue} values`, () => {
 });
 
 test(`Can detect invalid ${testValue} values`, () => {
-  assert.deepStrictEqual(values('', 3, { [testValue]: { type: 'number', minimum: 5 }, type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match $anyOf statement' }]);
-  assert.deepStrictEqual(values('', 3.5, { [testValue]: [{ type: 'string' }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match $anyOf statement' }]);
+  assert.deepStrictEqual(values('', 3, { [testValue]: { type: 'number', minimum: 5 }, type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match anyOf statement' }]);
+  assert.deepStrictEqual(values('', 3.5, { [testValue]: [{ type: 'string' }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match anyOf statement' }]);
 });

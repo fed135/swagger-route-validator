@@ -11,7 +11,7 @@
 
 - The fastest request/response validator for OpenAPI applications
 - Zero dependencies :star:
-- Rigorously tested
+- Rigorously tested, no Codegen or evals
 - Full OpenAPI 3.x.x feature coverage
 - Supports Express 4.x and 5.x
 - Define OpenAPI specs as Objects. Say goodbye to YAML files!

@@ -145,7 +145,6 @@ type BaseSchema = {
   pattern?: string
   maxItems?: number
   minItems?: number
-  uniqueItems?: boolean
   maxProperties?: number
   minProperties?: number
   enum?: any[]

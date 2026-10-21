@@ -17,6 +17,8 @@ commit [#](https://github.com/fed135/swagger-route-validator/commits)
 - Added support for OAS 3.2 features
   - HTTP 'QUERY' verb
 - TS Docs clearly list supported OAS features 
+- Enhanced `additionalProperties` beyond limiting extra object properties and now follows spec.
+- Removed legacy benchmarks in favor pure regression testing against itself and `ajv`
 
 ### Breaking changes
 

@@ -1,7 +1,7 @@
 import { bench, suite } from 'node:bench';
 import { validate as srv } from '../src/index.ts';
-// import Ajv from 'ajv';
-// import addFormats from "ajv-formats";
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 
 const spec = {
   type: 'object',
@@ -54,19 +54,16 @@ suite('Performance regression bench', () => {
     }
     b.end(0xffff);
   });
-});
 
-/*
   bench('ajv', { samples: 100 }, async (b) => {
-
     const errorAccumulator = [];
 
     b.start();
+    const ajv = new Ajv();
+    addFormats(ajv);
+    const validator = ajv.compile(spec);
     for (let i = 0; i < 0xffff; i++) {
-      const ajv = new Ajv();
-      addFormats(ajv);
-      const validator = ajv.compile(spec);
-      if (!validator(spec, {
+      errorAccumulator.push(validator({
         fooInt: i,
         fooNum: i / 2,
         fooString: `${i} !!`,
@@ -78,9 +75,8 @@ suite('Performance regression bench', () => {
           id: i * 2,
           name: `user_${i}`,
         },
-      })) errorAccumulator.push.apply(errorAccumulator, validator.errors);
+      }));
     }
     b.end(0xffff);
   });
 });
-*/

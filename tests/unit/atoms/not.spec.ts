@@ -11,6 +11,6 @@ test(`Can detect valid ${testValue} values`, () => {
 });
 
 test(`Can detect invalid ${testValue} values`, () => {
-  assert.deepStrictEqual(values('', 3, { [testValue]: { type: 'number', minimum: 2 }, type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value matches $not statement' }]);
-  assert.deepStrictEqual(values('', 3.5, { [testValue]: [{ type: 'number' }, { type: 'string' }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value matches $not statement' }]);
+  assert.deepStrictEqual(values('', 3, { [testValue]: { type: 'number', minimum: 2 }, type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value matches not statement' }]);
+  assert.deepStrictEqual(values('', 3.5, { [testValue]: [{ type: 'number' }, { type: 'string' }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value matches not statement' }]);
 });

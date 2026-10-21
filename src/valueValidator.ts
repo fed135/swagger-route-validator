@@ -82,7 +82,7 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
 
 // atoms
 function pattern(value: string, expectation: string, context: Context, failIf: ErrorAccumulator) {
-  let validator = regexpCache[expectation];
+  let validator = (expectation as unknown instanceof RegExp) ? expectation : regexpCache[expectation];
   if (!validator) {
     validator = new RegExp(expectation);
     regexpCache[expectation] = validator;
@@ -118,25 +118,25 @@ function multipleOf(value: number, expectation: number, context: Context, failIf
 function isNot(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
   const { items, numErrors } = runAssertions(value, expectation, context);
 
-  failIf(numErrors.length !== items.length, `Value matches $not statement`);
+  failIf(numErrors.length !== items.length, `Value matches not statement`);
 }
 
 function isAnyOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
   const { items, numErrors } = runAssertions(value, expectation, context);
 
-  failIf(items.length - numErrors.length < 1, `Value does not match $anyOf statement`);
+  failIf(items.length - numErrors.length < 1, `Value does not match anyOf statement`);
 }
 
 function isAllOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
   const { numErrors } = runAssertions(value, expectation, context);
 
-  failIf(numErrors.length !== 0, `Value does not match $allOf statement`);
+  failIf(numErrors.length !== 0, `Value does not match allOf statement`);
 }
 
 function isOneOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
   const { items, numErrors } = runAssertions(value, expectation, context);
 
-  failIf(items.length - numErrors.length !== 1, `Value does not match $oneOf statement`);
+  failIf(items.length - numErrors.length !== 1, `Value does not match oneOf statement`);
 }
 
 function runAssertions(value: any, expectation: any, context: Context) {
