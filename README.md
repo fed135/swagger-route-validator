@@ -12,7 +12,7 @@
 - The fastest and tiniest request/response validator for OpenAPI applications
 - Zero dependencies :star:
 - Rigorously tested, no Codegen or evals
-- Full OpenAPI 3.x.x feature coverage and OpenAPI [format registry](https://spec.openapis.org/registry/format/)
+- Full OpenAPI 3.x.x featured and OpenAPI [format registry](https://spec.openapis.org/registry/format/) coverage
 - Ships an Express 4.x and 5.x compatible middleware
 - Define OpenAPI specs as Objects. Say goodbye to YAML files!
 

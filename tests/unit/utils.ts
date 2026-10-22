@@ -8,3 +8,19 @@ export function expect(expectation: boolean) {
     return value;
   };
 }
+
+export function generateRequest(attributes?: any) {
+  const base = Object.assign({
+    url: '/',
+    params: {},
+    method: 'get',
+    headers: {},
+    header: undefined,
+    query: {},
+    body: null
+  }, attributes ?? {});
+
+  const header = { get: (name: string) => base.headers[name.toLowerCase()] ?? null };
+
+  return Object.assign(base, { header });
+}

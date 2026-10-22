@@ -22,7 +22,7 @@ export function validateRequest(routeSpec: RouteDefinition, req: Request, spec: 
 }
 
 function validateParameters(parameters: RouteDefinition['parameters'], req: Request, context: Context) {
-  const cookies = parameters.some(i => i.in === 'cookie') ? parseCookies(req.headers.cookie ?? '') : {};
+  const cookies = parameters.some(i => i.in === 'cookie') ? parseCookies(req.header.get('cookie') ?? '') : {};
 
   for (let i = 0; i < parameters.length; i++) {
     const pLoc: SupportedLocations = parameters[i].in;
@@ -33,19 +33,28 @@ function validateParameters(parameters: RouteDefinition['parameters'], req: Requ
 
     switch (pLoc) {
       case 'cookie':
-        if (failIf(parameters[i].required === true && cookies[pName] === undefined, `Value is required and was not provided`)) break;
+        if (cookies[pName] === undefined) {
+          failIf(parameters[i].required === true, `Value is required and was not provided`);
+          break;
+        }
         validateValue(`cookie.${pName}`, cookies[pName], parameters[i].schema, noop, context);
         break;
       case 'header':
-        if (failIf(parameters[i].required === true && req.headers[pName] === null, `Value is required and was not provided`)) break;
-        validateValue(`header.${pName}`, req.headers[pName], parameters[i].schema, noop, context);
+        if (req.header.get(pName) === null) {
+          failIf(parameters[i].required === true, `Value is required and was not provided`);
+          break;
+        }
+        validateValue(`header.${pName}`, req.header.get(pName), parameters[i].schema, noop, context);
         break;
       case 'path':
         if (failIf(req.params?.[pName] === undefined, `Value is required and was not provided`)) break;
         validateValue(`path.${pName}`, req.params[pName], parameters[i].schema, context.coerce ? v => req.params[pName] = v : noop, context);
         break;
       case 'query':
-        if (failIf(parameters[i].required === true && req.query?.[pName] === undefined, `Value is required and was not provided`)) break;
+        if (req.query?.[pName] === undefined) {
+          failIf(parameters[i].required === true, `Value is required and was not provided`);
+          break;
+        }
         validateValue(`query.${pName}`, req.query?.[pName], parameters[i].schema, context.coerce ? v => req.query ? req.query[pName] = v : req.query = { [pName]: v } : noop, context);
         break;
       default:
