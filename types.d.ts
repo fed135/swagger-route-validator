@@ -1,7 +1,7 @@
 type SupportedParameterTypes = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file' | 'any';
-type SupportedStringFormats = 'byte' | 'binary' | 'password' | 'date' | 'date-time' | 'uuid' | 'uri' | 'ipv4' | 'ipv6' | 'email';
-type SupportedFloatingFormats = 'double' | 'float';
-type SupportedIntegerFormats = 'int8' | 'int16' | 'int32' | 'int64';
+type SupportedStringFormats = 'byte' | 'binary' | 'password' | 'date' | 'date-time' | 'uuid' | 'uri' | 'ipv4' | 'ipv6' | 'email' | 'base64url' | 'commonmark' | 'html' | 'char' | 'date-time-local' | 'decimal' | 'decimal128' | 'duration' | 'hostname' | 'http-date' | 'idn-email' | 'idn-hostname' | 'ipv4-cidr' | 'ipv6-cidr' | 'int64' | 'iri-reference' | 'iri' | 'json-pointer' | 'language' | 'media-range' | 'regex' | 'relative-json-pointer' | 'sf-binary' | 'sf-boolean' | 'sf-string' | 'sf-token' | 'time' | 'time-local' | 'uint64' | 'unixtime' | 'uri-reference' | 'uri-template';
+type SupportedFloatingFormats = 'double' | 'float' | 'decimal' | 'decimal128' | 'sf-decimal';
+type SupportedIntegerFormats = 'int8' | 'int16' | 'int32' | 'int64' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'unixtime' | 'double-int' | 'sf-integer';
 type SupportedNumericFormats = SupportedFloatingFormats | SupportedIntegerFormats;
 type SupportedLocations = 'query' | 'path' | 'header' | 'cookie';
 type SupportedOASVersions = '3.0.0' | '3.0.1' | '3.0.2' | '3.0.3' | '3.0.4' | '3.1.0' | '3.1.1' | '3.2.0' | '3.2.1';
@@ -159,7 +159,7 @@ interface Schema extends BaseSchema {
   not?: Schema
   additionalProperties?: Schema | boolean
   properties?: Record<string, Schema>
-  discriminator?: string
+  discriminator?: Discriminator
   readOnly?: boolean
   example?: any
   required?: string[]
@@ -170,6 +170,12 @@ interface Schema extends BaseSchema {
 interface Errors {
   error: string
   cursor: string
+}
+
+interface Discriminator {
+  propertyName: string
+  mapping?: Record<string, string>
+  defaultMapping?: string
 }
 
 interface ExpressRequest {

@@ -73,9 +73,9 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
   if (spec.maxLength) maxLength(value, spec.maxLength, context, failIf);
   if (spec.multipleOf) multipleOf(value, spec.multipleOf, context, failIf);
   if (spec.not) isNot(value, spec.not, context, failIf);
-  if (spec.allOf) isAllOf(value, spec.allOf, context, failIf);
-  if (spec.anyOf) isAnyOf(value, spec.anyOf, context, failIf);
-  if (spec.oneOf) isOneOf(value, spec.oneOf, context, failIf);
+  if (spec.allOf) isAllOf(value, spec.allOf, context, spec.discriminator, failIf);
+  if (spec.anyOf) isAnyOf(value, spec.anyOf, context, spec.discriminator, failIf);
+  if (spec.oneOf) isOneOf(value, spec.oneOf, context, spec.discriminator, failIf);
 
   return context.errors;
 }
@@ -121,22 +121,31 @@ function isNot(value: any, expectation: any, context: Context, failIf: ErrorAccu
   failIf(numErrors.length !== items.length, `Value matches not statement`);
 }
 
-function isAnyOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
-  const { items, numErrors } = runAssertions(value, expectation, context);
+function isAnyOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
 
-  failIf(items.length - numErrors.length < 1, `Value does not match anyOf statement`);
+  const { items, numErrors } = runAssertions(value, schema, context);
+
+  failIf(items.length - numErrors.length < 1, `Value does not match anyOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
-function isAllOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
-  const { numErrors } = runAssertions(value, expectation, context);
+function isAllOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
 
-  failIf(numErrors.length !== 0, `Value does not match allOf statement`);
+  const { numErrors } = runAssertions(value, schema, context);
+
+  failIf(numErrors.length !== 0, `Value does not match allOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
-function isOneOf(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
-  const { items, numErrors } = runAssertions(value, expectation, context);
+function isOneOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
 
-  failIf(items.length - numErrors.length !== 1, `Value does not match oneOf statement`);
+  const { items, numErrors } = runAssertions(value, schema, context);
+
+  failIf(items.length - numErrors.length !== 1, `Value does not match oneOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
 function runAssertions(value: any, expectation: any, context: Context) {
@@ -145,6 +154,18 @@ function runAssertions(value: any, expectation: any, context: Context) {
   const numErrors = items.map(item => validateValue('', value, item, noop, tempContext).length > 0).filter(item => !!item); // Length = number of errors
 
   return { items, numErrors };
+}
+
+function extractDiscriminator(value: any, expectation: any, discriminator: Discriminator, failIf: ErrorAccumulator): Partial<Schema> | null {
+  // If discriminator, check presence in value
+  // Check if discriminator value exists in mapping or if defaultMapping exists
+  // Determine which assertion to use based on the mapping
+  let schema = discriminator ? value[discriminator.propertyName] && discriminator.mapping?.[value[discriminator.propertyName]] ? discriminator.mapping[value[discriminator.propertyName]] : discriminator.defaultMapping ? discriminator.defaultMapping : expectation : expectation;
+  if (typeof schema === 'string') schema = { $ref: schema };
+
+  if (failIf(discriminator && (value[discriminator.propertyName] === null || value[discriminator.propertyName] === undefined), `Value does not include discriminator propertyName ${discriminator?.propertyName}`)) return null;
+
+  return schema;
 }
 
 // types
