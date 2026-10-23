@@ -1,295 +1,259 @@
 import { createRequire } from 'node:module';
-import { format } from './format.ts';
-import { makeError } from './error.ts';
+import { formatString, formatNumber } from './format.ts';
+import { accumulator } from './error.ts';
+import type { SRVError, ErrorAccumulator } from './error.ts';
 
 const require = createRequire(import.meta.url);
 
-const propertyMap = {
-  format,
-  pattern,
-  enum: enumeration,
-  minimum,
-  maximum,
-  exclusiveMinimum,
-  exclusiveMaximum,
-  maxItems: () => {},
-  minItems: () => {},
-  maxProperties: () => {},
-  minProperties: () => {},
-  minLength,
-  maxLength,
-  multipleOf,
-  $not: isNot,
-  $allOf: isAllOf,
-  $anyOf: isAnyOf,
-  $oneOf: isOneOf,
+const noop = () => {};
+
+export type Context = {
+  errors: SRVError[]
+  fullSpec: Spec
+  coerce: boolean
 };
 
-export function set(req) {
-  return (cursor, value) => {
-    const keys = cursor.split('.');
-    const last = keys.pop();
+const regexpCache: { [key: string]: RegExp } = {};
 
-    if (keys[0] === 'path') return; // Fix for req.path in Express 5
-
-    keys.reduce((o, k) => (o[k] || {}), req)[last] = value;
-  };
-}
-
-const resolvedRefs = new WeakMap();
-
-export function scanRef(ref, spec) {
-  let refs = resolvedRefs.get(spec);
-  if (refs === undefined) {
-    refs = new Map();
-    resolvedRefs.set(spec, refs);
-  }
-  let target = refs.get(ref);
-  if (target === undefined) {
-    target = lookupRef(ref, spec);
-    refs.set(ref, target);
-  }
-  return target;
-}
-
-function lookupRef(path: string, spec: any) {
+export function lookupRef(path: string, spec: Spec) {
   // Check if the path is for an external reference
   const target = (path[0] !== '#') ? require(path.substring(0, path.indexOf('#') || path.length)) : spec;
   const pathTokens = path.substring(path.indexOf('#') + 1).split('/');
   return pathTokens.reduce((cursor, token) => token !== '' ? cursor?.[token] || null : cursor, target);
 }
 
-export function validateValue(cursor, value, spec, setDefault, errors, fullSpec = {}) {
-  if (value !== undefined && value !== null) {
-    if (spec.schema) {
-      return validateValue(cursor, value, spec.schema, setDefault, errors, fullSpec);
-    }
+export function validateValue(cursor: string, value: any, spec: Partial<Schema>, setValue: (val: any) => void, context: Context): SRVError[] {
+  const failIf: ErrorAccumulator = accumulator(cursor, context.errors);
+  const missingValue = value === undefined || value === null;
 
-    if (spec.$ref) {
-      const refName = spec.$ref;
-      const refKey = refName.split('/').slice(-1)[0];
-      spec = scanRef(refName, fullSpec);
-
-      if (!spec) {
-        return errors.push(makeError(cursor, value, `Could not find definition for ${refName}`));
-      }
-
-      cursor += `:${refKey}`;
-    }
-
-    type(cursor, value, spec.type || 'object', spec, setDefault, errors);
-
-    for (const prop in propertyMap) {
-      if (spec[prop] !== undefined) {
-        propertyMap[prop](cursor, value, spec[prop], errors);
-      }
-    }
+  // traverse schema property
+  if (spec.schema) {
+    return validateValue(cursor, value, spec.schema, setValue, context);
   }
-  else {
-    if (spec.required === true || (spec.required === undefined && spec.default === undefined && spec.nullable != true)) {
-      errors.push(makeError(cursor, value, `Value is required and was not provided`));
-    }
-    if (spec.default !== undefined) {
-      setDefault(cursor, spec.default);
-    }
+
+  // resolve Ref
+  if (spec.$ref) {
+    const refName = spec.$ref;
+    const refKey = refName.slice(refName.lastIndexOf('/') + 1); ;
+    const loadedSpec = lookupRef(refName, context.fullSpec);
+
+    if (failIf(!loadedSpec, `Could not find definition for ${refName}`)) return context.errors;
+
+    return validateValue(`${cursor}:${refKey}`, value, loadedSpec, setValue, context);
   }
-  return errors;
+
+  // set default
+  if (spec.default !== undefined && missingValue) {
+    setValue(spec.default);
+    value = spec.default;
+  }
+
+  // required
+  if (failIf(spec.nullable !== true && missingValue && spec.default === undefined, `Value is required and was not provided`)) return context.errors;
+
+  // nullable
+  if (spec.nullable === true && missingValue) return context.errors;
+
+  // typecheck and coersion
+  if (spec.type) type(cursor, value, spec.type || 'object', spec, context.coerce === true ? setValue : noop, context, failIf);
+
+  // number formats
+  if ((spec.type === 'integer' || spec.type === 'number') && spec.format) formatNumber(value, spec.format, failIf);
+
+  // string formats
+  if ((spec.type === 'string') && spec.format) formatString(value, spec.format, failIf);
+
+  // atoms
+
+  if (spec.pattern) pattern(value, spec.pattern, context, failIf);
+  if (spec.enum) enumeration(value, spec.enum, context, failIf);
+  if (spec.minimum) minimum(value, spec.minimum, context, failIf);
+  if (spec.maximum) maximum(value, spec.maximum, context, failIf);
+  if (spec.minLength) minLength(value, spec.minLength, context, failIf);
+  if (spec.maxLength) maxLength(value, spec.maxLength, context, failIf);
+  if (spec.multipleOf) multipleOf(value, spec.multipleOf, context, failIf);
+  if (spec.not) isNot(value, spec.not, context, failIf);
+  if (spec.allOf) isAllOf(value, spec.allOf, context, spec.discriminator, failIf);
+  if (spec.anyOf) isAnyOf(value, spec.anyOf, context, spec.discriminator, failIf);
+  if (spec.oneOf) isOneOf(value, spec.oneOf, context, spec.discriminator, failIf);
+
+  return context.errors;
 }
 
-// -- Atoms
-
-function pattern(cursor, value, expectation, errors) {
-  const result = new RegExp(expectation).exec(value);
-  if (result === null) {
-    errors.push(makeError(cursor, value, `Value does not match pattern ${expectation}`));
+// atoms
+function pattern(value: string, expectation: string, context: Context, failIf: ErrorAccumulator) {
+  let validator = (expectation as unknown instanceof RegExp) ? expectation : regexpCache[expectation];
+  if (!validator) {
+    validator = new RegExp(expectation);
+    regexpCache[expectation] = validator;
   }
+
+  failIf(!validator.test(value), `Value does not match pattern ${expectation}`);
 }
 
-function minimum(cursor, value, expectation, errors) {
-  if (value < expectation) {
-    errors.push(makeError(cursor, value, `Value is smaller than minimum: ${expectation}`));
-  }
+function minimum(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
+  failIf(value < expectation, `Value is smaller than minimum: ${expectation}`);
 }
 
-function maximum(cursor, value, expectation, errors) {
-  if (value > expectation) {
-    errors.push(makeError(cursor, value, `Value is larger than maximum: ${expectation}`));
-  }
+function maximum(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
+  failIf(value > expectation, `Value is larger than minimum: ${expectation}`);
 }
 
-function exclusiveMinimum(cursor, value, expectation, errors) {
-  if (value <= expectation) {
-    errors.push(makeError(cursor, value, `Value is smaller or equal the minimum: ${expectation}`));
-  }
+function enumeration(value: string, expectation: string[], context: Context, failIf: ErrorAccumulator) {
+  failIf(!expectation.includes(value), `Value is not one of: [${expectation.toString()}]`);
 }
 
-function exclusiveMaximum(cursor, value, expectation, errors) {
-  if (value >= expectation) {
-    errors.push(makeError(cursor, value, `Value is larger or equal the maximum: ${expectation}`));
-  }
+function minLength(value: string, expectation: number, context: Context, failIf: ErrorAccumulator) {
+  failIf(value.length < expectation, `Value has does not match minimum length: ${expectation}`);
 }
 
-function enumeration(cursor, value, expectation, errors) {
-  if (!expectation.includes(value)) {
-    errors.push(makeError(cursor, value, `Value is not one of: [${expectation.toString()}]`));
-  }
+function maxLength(value: string, expectation: number, context: Context, failIf: ErrorAccumulator) {
+  failIf(value.length > expectation, `Value has does not match maximum length: ${expectation}`);
 }
 
-function minLength(cursor, value, expectation, errors) {
-  if (value.length < expectation) {
-    errors.push(makeError(cursor, value, `Value has does not match minimum length: ${expectation}`));
-  }
+function multipleOf(value: number, expectation: number, context: Context, failIf: ErrorAccumulator) {
+  failIf(value % expectation !== 0, `Value is not a multiple of: ${expectation}`);
 }
 
-function maxLength(cursor, value, expectation, errors) {
-  if (value.length > expectation) {
-    errors.push(makeError(cursor, value, `Value has does not match maximum length: ${expectation}`));
-  }
+function isNot(value: any, expectation: any, context: Context, failIf: ErrorAccumulator) {
+  const { items, numErrors } = runAssertions(value, expectation, context);
+
+  failIf(numErrors.length !== items.length, `Value matches not statement`);
 }
 
-function multipleOf(cursor, value, expectation, errors) {
-  if (value % expectation !== 0) {
-    errors.push(makeError(cursor, value, `Value is not a multiple of: ${expectation}`));
-  }
+function isAnyOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
+
+  const { items, numErrors } = runAssertions(value, schema, context);
+
+  failIf(items.length - numErrors.length < 1, `Value does not match anyOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
-function isNot(cursor, value, expectation, errors) {
-  const { items, numErrors } = runAssertions(value, expectation);
+function isAllOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
 
-  if (numErrors.length !== items.length) {
-    errors.push(makeError(cursor, value, `Value was found in $not statement ${expectation}`));
-  }
+  const { numErrors } = runAssertions(value, schema, context);
+
+  failIf(numErrors.length !== 0, `Value does not match allOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
-function isAnyOf(cursor, value, expectation, errors) {
-  const { items, numErrors } = runAssertions(value, expectation);
+function isOneOf(value: any, expectation: any, context: Context, discriminator: Discriminator, failIf: ErrorAccumulator) {
+  const schema = extractDiscriminator(value, expectation, discriminator, failIf);
+  if (schema === null) return context.errors;
 
-  if (items.length - numErrors.length < 1) {
-    errors.push(makeError(cursor, value, `Value did not match $anyOf statement ${expectation}`));
-  }
+  const { items, numErrors } = runAssertions(value, schema, context);
+
+  failIf(items.length - numErrors.length !== 1, `Value does not match oneOf statement${discriminator?.propertyName ? ` with discriminator ${discriminator.propertyName}` : ''}`);
 }
 
-function isAllOf(cursor, value, expectation, errors) {
-  const { numErrors } = runAssertions(value, expectation);
-
-  if (numErrors.length !== 0) {
-    errors.push(makeError(cursor, value, `Value did not match $allOf statement ${expectation}`));
-  }
-}
-
-function isOneOf(cursor, value, expectation, errors) {
-  const { items, numErrors } = runAssertions(value, expectation);
-
-  if (items.length - numErrors.length !== 1) {
-    errors.push(makeError(cursor, value, `Value did not match $oneOf statement ${expectation}`));
-  }
-}
-
-function runAssertions(value, expectation) {
+function runAssertions(value: any, expectation: any, context: Context) {
+  const tempContext: Context = { errors: [], fullSpec: context.fullSpec, coerce: context.coerce };
   const items = (Array.isArray(expectation) ? expectation : [expectation]);
-  const numErrors = items.map(item => validateValue('', value, item, () => {}, []).length > 0).filter(item => !!item); // Length = number of errors
+  const numErrors = items.map(item => validateValue('', value, item, noop, tempContext).length > 0).filter(item => !!item); // Length = number of errors
 
   return { items, numErrors };
 }
 
-export function type(cursor, value, expectation, spec, setDefault, errors) {
+function extractDiscriminator(value: any, expectation: any, discriminator: Discriminator, failIf: ErrorAccumulator): Partial<Schema> | null {
+  // If discriminator, check presence in value
+  // Check if discriminator value exists in mapping or if defaultMapping exists
+  // Determine which assertion to use based on the mapping
+  let schema = discriminator ? value[discriminator.propertyName] && discriminator.mapping?.[value[discriminator.propertyName]] ? discriminator.mapping[value[discriminator.propertyName]] : discriminator.defaultMapping ? discriminator.defaultMapping : expectation : expectation;
+  if (typeof schema === 'string') schema = { $ref: schema };
+
+  if (failIf(discriminator && (value[discriminator.propertyName] === null || value[discriminator.propertyName] === undefined), `Value does not include discriminator propertyName ${discriminator?.propertyName}`)) return null;
+
+  return schema;
+}
+
+// types
+export function type(cursor: string, value: any, expectation: any, spec: Schema, setValue: (value: any) => void, context: Context, failIf: ErrorAccumulator) {
   switch (expectation) {
     case 'string':
-      string(cursor, value, setDefault, errors);
+      string(value, failIf);
       break;
     case 'integer':
-      integer(cursor, value, setDefault, errors);
+      integer(value, setValue, failIf);
       break;
     case 'number':
-      number(cursor, value, setDefault, errors);
+      number(value, setValue, failIf);
       break;
     case 'boolean':
-      boolean(cursor, value, setDefault, errors);
+      boolean(value, setValue, failIf);
       break;
     case 'array':
-      list(cursor, value, spec, setDefault, errors);
-      break;
-    case 'list':
-      list(cursor, value, spec, setDefault, errors);
+      list(cursor, value, spec, setValue, context, failIf);
       break;
     case 'object':
-      object(cursor, value, spec, setDefault, errors);
+      object(cursor, value, spec, setValue, context, failIf);
       break;
     case 'schema':
-      object(cursor, value, spec, setDefault, errors);
+      object(cursor, value, spec, setValue, context, failIf);
       break;
     case 'any':
       break;
     default:
       throw new Error(`Invalid field type value ${expectation} in ${JSON.stringify(spec)} at ${cursor}`);
   }
-  return errors;
 }
 
-// data types
-
-function string(cursor, value, setDefault, errors) {
-  if (typeof value !== 'string') {
-    errors.push(makeError(cursor, value, 'Value is not a string'));
-  }
+function string(value: any, failIf: ErrorAccumulator) {
+  failIf(typeof value !== 'string', 'Value is not a string');
 }
 
-function number(cursor, value, setDefault, errors) {
+function number(value: any, setValue: (value: any) => void, failIf: ErrorAccumulator) {
   const parsedValue = Number(value);
-  if (typeof parsedValue !== 'number' || Number.isNaN(parsedValue)) {
-    errors.push(makeError(cursor, value, 'Value is not a number'));
-  }
-  setDefault(cursor, parsedValue);
+  if (!failIf(typeof parsedValue !== 'number' || Number.isNaN(parsedValue), 'Value is not a number')) setValue(parsedValue);
 }
 
-function integer(cursor, value, setDefault, errors) {
+function integer(value: any, setValue: (value: any) => void, failIf: ErrorAccumulator) {
   const parsedValue = Number(value);
-  if (!Number.isInteger(parsedValue)) {
-    errors.push(makeError(cursor, value, 'Value is not an integer'));
-  }
-  setDefault(cursor, parsedValue);
+  if (!failIf(!Number.isInteger(parsedValue), 'Value is not an integer')) setValue(parsedValue);
 }
 
-function boolean(cursor, value, setDefault, errors) {
-  if (value === 'true' || value === true) setDefault(cursor, true);
-  else if (value === 'false' || value === false) setDefault(cursor, false);
-  else errors.push(makeError(cursor, value, 'Value is not a boolean'));
+function boolean(value: any, setValue: (value: any) => void, failIf: ErrorAccumulator) {
+  if (value === 'true' || value === true) setValue(true);
+  else if (value === 'false' || value === false) setValue(false);
+  else failIf(true, 'Value is not a boolean');
 }
 
-function list(cursor, value, spec, setDefault, errors) {
-  if (typeof value === 'string') value = value.split(',');
+function list(cursor: string, value: any, spec: Schema, setValue: (value: any) => void, context: Context, failIf: ErrorAccumulator) {
+  const parsedValue = (typeof value === 'string') ? value.split(',') : value;
 
-  if (!Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an array'));
+  if (failIf(!Array.isArray(parsedValue), 'Value is not an array')) return context.errors;
 
-  if (spec.minItems !== undefined && value.length < spec.minItems) return errors.push(makeError(cursor, value, `Value does not meet the minimum number of items ${spec.minItems}`));
-  if (spec.maxItems !== undefined && value.length > spec.maxItems) return errors.push(makeError(cursor, value, `Value exceeds the maximum number of items ${spec.maxItems}`));
+  if (!Array.isArray(value)) setValue(parsedValue);
+
+  failIf(spec.minItems !== undefined && parsedValue.length < spec.minItems, `Value does not meet the minimum number of items ${spec.minItems}`);
+  failIf(spec.maxItems !== undefined && parsedValue.length > spec.maxItems, `Value exceeds the maximum number of items ${spec.maxItems}`);
+
   const param = spec.items || { type: 'any' };
-  for (let i = 0; i < value.length; i++) {
-    validateValue(`${cursor}[${i}]`, value[i], param, (c, v) => value[i] = v, errors);
+  for (let i = 0; i < parsedValue.length; i++) {
+    validateValue(`${cursor}[${i}]`, parsedValue[i], param, (typeof value !== 'string') ? v => value[i] = v : noop, context);
   }
 }
 
-function object(cursor, value, spec, setDefault, errors) {
-  if (typeof value !== 'object' || Array.isArray(value)) return errors.push(makeError(cursor, value, 'Value is not an object'));
+function object(cursor: string, value: any, spec: Schema, setValue: (value: any) => void, context: Context, failIf: ErrorAccumulator) {
+  if (failIf(typeof value !== 'object' || Array.isArray(value), 'Value is not an object')) return context.errors;
 
   const props = Object.keys(value);
-  if (spec.maxProperties !== null && props.length > spec.maxProperties) return errors.push(makeError(cursor, value, `Value has more properties than maximum: ${spec.maxProperties}`));
-  if (spec.minProperties !== null && props.length < spec.minProperties) return errors.push(makeError(cursor, value, `Value has fewer properties than minimum: ${spec.minProperties}`));
-
-  if (spec.required !== undefined && spec.required.length) {
-    const missingKeys = spec.required.filter(key => !(key in value));
-    if (missingKeys.length > 0) {
-      return errors.push(makeError(cursor, value, `Value is missing required keys [${missingKeys.toString()}]`));
-    }
-  }
+  failIf(props.length > (spec.maxProperties ?? 0xffff), `Value has more properties than maximum: ${spec.maxProperties ?? 0xffff}`);
+  failIf(props.length < (spec.minProperties ?? 0), `Value has fewer properties than minimum: ${spec.minProperties ?? 0}`);
 
   if (spec.additionalProperties === false) {
     for (let i = 0; i < props.length; i++) {
-      if (!(props[i] in spec.properties)) return errors.push(makeError(cursor, value, `Unexpected key ${props[i]} in object, additionalProperties not permitted`));
+      if (failIf(!(props[i] in spec.properties), `Unexpected key ${props[i]} in object, additionalProperties not permitted`)) return context.errors;
     }
   }
 
+  if (spec.required?.length) {
+    const missingKeys = spec.required.filter(key => !props.includes(key));
+    if (failIf(missingKeys.length > 0, `Value is missing required keys [${missingKeys.toString()}]`)) return context.errors;
+  }
+
   for (const prop in spec.properties) {
-    validateValue(`${cursor}.${prop}`, value[prop], spec.properties[prop], (c, v) => value[prop] = v, errors);
+    validateValue(`${cursor}.${prop}`, value[prop], spec.properties[prop], v => value[prop] = v, context);
   }
 }
