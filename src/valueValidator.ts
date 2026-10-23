@@ -55,7 +55,7 @@ export function validateValue(cursor: string, value: any, spec: Partial<Schema>,
   if (spec.nullable === true && missingValue) return context.errors;
 
   // typecheck and coersion
-  type(cursor, value, spec.type || 'object', spec, context.coerce === true ? setValue : noop, context, failIf);
+  if (spec.type) type(cursor, value, spec.type || 'object', spec, context.coerce === true ? setValue : noop, context, failIf);
 
   // number formats
   if ((spec.type === 'integer' || spec.type === 'number') && spec.format) formatNumber(value, spec.format, failIf);

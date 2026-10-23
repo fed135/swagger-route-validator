@@ -14,3 +14,23 @@ test(`Can detect invalid ${testValue} values`, () => {
   assert.deepStrictEqual(values('', 3, { [testValue]: [{ type: 'number', minimum: 2 }, { type: 'number', minimum: 3 }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match oneOf statement' }]);
   assert.deepStrictEqual(values('', 3.5, { [testValue]: [{ type: 'string' }], type: 'number' }, setDefault, { errors: [] }), [{ cursor: '', error: 'Value does not match oneOf statement' }]);
 });
+
+test(`Can determine the proper model from discriminator property`, () => {
+  const spec = {
+    components: {
+      dog: { type: 'object', properties: { foo: { type: 'string' }, bar: { type: 'number', minimum: 2 } } },
+      cat: { type: 'object', properties: { foo: { type: 'string' }, bar: { type: 'number', minimum: 3 } } },
+    },
+  };
+  assert.strictEqual(values('', { foo: 'dog', bar: 2 }, { [testValue]: [{ $ref: '#/components/dog' }, { $ref: '#/components/cat' }], discriminator: { propertyName: 'foo', mapping: { dog: '#/components/dog', cat: '#/components/cat' } } }, setDefault, { errors: [], fullSpec: spec, coerce: true }).length, 0);
+});
+
+test(`Can detect bad model from discriminator property`, () => {
+  const spec = {
+    components: {
+      dog: { type: 'object', properties: { foo: { type: 'string' }, bar: { type: 'number', minimum: 2 } } },
+      cat: { type: 'object', properties: { foo: { type: 'string' }, bar: { type: 'number', minimum: 3 } } },
+    },
+  };
+  assert.deepStrictEqual(values('', { foo: 'cat', bar: 2 }, { [testValue]: [{ $ref: '#/components/dog' }, { $ref: '#/components/cat' }], discriminator: { propertyName: 'foo', mapping: { dog: '#/components/dog', cat: '#/components/cat' } } }, setDefault, { errors: [], fullSpec: spec, coerce: true }), [{ cursor: '', error: 'Value does not match oneOf statement with discriminator foo' }]);
+});

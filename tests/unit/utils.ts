@@ -17,10 +17,10 @@ export function generateRequest(attributes?: any) {
     headers: {},
     header: undefined,
     query: {},
-    body: null
+    body: null,
   }, attributes ?? {});
 
   const header = { get: (name: string) => base.headers[name.toLowerCase()] ?? null };
 
-  return Object.assign(base, { header });
+  return Object.assign(base, header);
 }

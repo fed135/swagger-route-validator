@@ -11,7 +11,7 @@ export function validateRequest(routeSpec: RouteDefinition, req: Request, spec: 
   if (routeSpec.parameters) validateParameters(routeSpec.parameters, req, context);
 
   if (routeSpec.requestBody?.content) {
-    const currentMediaType = req.headers?.['Content-Type'] ?? 'application/json';
+    const currentMediaType = req.get('content-type') ?? 'application/json';
     if (currentMediaType !== 'application/json') throw new Error(`Unable to parse Content-Type ${currentMediaType}. Must be "application/json"`);
 
     if (!routeSpec.requestBody?.content?.['application/json']) return [{ cursor: 'body', error: 'application/json requestBody definition is not defined' }];
@@ -22,7 +22,7 @@ export function validateRequest(routeSpec: RouteDefinition, req: Request, spec: 
 }
 
 function validateParameters(parameters: RouteDefinition['parameters'], req: Request, context: Context) {
-  const cookies = parameters.some(i => i.in === 'cookie') ? parseCookies(req.header.get('cookie') ?? '') : {};
+  const cookies = parameters.some(i => i.in === 'cookie') ? parseCookies(req.get('cookie') ?? '') : {};
 
   for (let i = 0; i < parameters.length; i++) {
     const pLoc: SupportedLocations = parameters[i].in;
@@ -40,11 +40,11 @@ function validateParameters(parameters: RouteDefinition['parameters'], req: Requ
         validateValue(`cookie.${pName}`, cookies[pName], parameters[i].schema, noop, context);
         break;
       case 'header':
-        if (req.header.get(pName) === null) {
+        if (req.get(pName) === null) {
           failIf(parameters[i].required === true, `Value is required and was not provided`);
           break;
         }
-        validateValue(`header.${pName}`, req.header.get(pName), parameters[i].schema, noop, context);
+        validateValue(`header.${pName}`, req.get(pName), parameters[i].schema, noop, context);
         break;
       case 'path':
         if (failIf(req.params?.[pName] === undefined, `Value is required and was not provided`)) break;
